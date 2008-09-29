@@ -1,2 +1,2 @@
 
-SUBDIRS = rsovpu4
+SUBDIRS = hmp3d rsovpu4
