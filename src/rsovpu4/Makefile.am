@@ -2,7 +2,11 @@ AM_CFLAGS = -I$(srcdir)
 
 omxrsovpu4decdir = $(BELLAGIO_PLUGINSDIR)
 
-omxrsovpu4dec_LTLIBRARIES = libomxrsovpu4dec.la
+if HAVE_RSOVPU4
+rsovpu4_la = libomxrsovpu4dec.la
+endif
+
+omxrsovpu4dec_LTLIBRARIES = $(rsovpu4_la)
 
 libomxrsovpu4dec_la_SOURCES = omx_rsovpu4dec_component.c library_entry_point.c omx_rsovpu4dec_component.h
 libomxrsovpu4dec_la_LIBADD = $(OMXIL_LIBS) $(RSOVPU4_LIBS)

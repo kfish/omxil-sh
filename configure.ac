@@ -26,7 +26,11 @@ AC_CHECK_FUNCS([memset])
 # Check for Bellagio
 PKG_CHECK_MODULES([OMXIL], [libomxil-bellagio])
 
-# Checks for codec libraries
+_PKG_CONFIG([pluginsdir], [variable=pluginsdir], [libomxil-bellagio])
+BELLAGIO_PLUGINSDIR=${pkg_cv_pluginsdir}
+AC_SUBST([BELLAGIO_PLUGINSDIR])
+
+## Checks for codec libraries
 
 # Check for HMP3D
 HAVE_HMP3D="no"
@@ -44,15 +48,11 @@ if test "x${ac_enable_hmp3d}" = xyes ; then
   fi
   if test "x$HAVE_HMP3D" = xyes ; then
     AC_DEFINE(HAVE_HMP3D, [1], [Define to 1 if you have HMP3D])
-    openmax_sh4_pkgdeps="$openmax_sh4_pkgdeps hmp3d"
-  else
-    AC_DEFINE(HAVE_HMP3D, [0], [Define to 1 if you have HMP3D])
-  fi
-
-  if test "x$HAVE_HMP3D" = "xyes" ; then
     HMP3D_LIBS="-lhmp3d -lm"
     AC_SUBST(HMP3D_LIBS)
     HMP3D_SUPPORT="yes"
+  else
+    AC_DEFINE(HAVE_HMP3D, [0], [Define to 1 if you have HMP3D])
   fi
 else
   AC_DEFINE(HAVE_HMP3D, [0], [Define to 1 if you have HMP3D])
@@ -60,13 +60,30 @@ else
 fi
 AM_CONDITIONAL(HAVE_HMP3D, [test "x$HAVE_HMP3D" = "xyes"])
   
+# Check for rsovpu4
+HAVE_RSOVPU4="no"
+RSOVPU4_SUPPORT="no"
 
+ac_enable_rsovpu4=yes
+AC_ARG_ENABLE(rsovpu4,
+     [  --disable-rsovpu4       disable building of RSOVPU4 support ],
+     [ ac_enable_rsovpu4=no ], [ ac_enable_rsovpu4=yes] )
 
-PKG_CHECK_MODULES([RSOVPU4], [rsovpu4])
+if test "x${ac_enable_rsovpu4}" = xyes ; then
+  PKG_CHECK_MODULES([RSOVPU4], [rsovpu4], HAVE_RSOVPU4="yes", HAVE_RSOVPU4="no")
 
-_PKG_CONFIG([pluginsdir], [variable=pluginsdir], [libomxil-bellagio])
-BELLAGIO_PLUGINSDIR=${pkg_cv_pluginsdir}
-AC_SUBST([BELLAGIO_PLUGINSDIR])
+  if test "x$HAVE_RSOVPU4" = "xyes" ; then
+    AC_DEFINE(HAVE_RSOVPU4, [1], [Define to 1 if you have RSOVPU4])
+    AC_SUBST(RSOVPU4_LIBS)
+    RSOVPU4_SUPPORT="yes"
+  else
+    AC_DEFINE(HAVE_RSOVPU4, [0], [Define to 1 if you have RSOVPU4])
+  fi
+else
+  AC_DEFINE(HAVE_RSOVPU4, [0], [Define to 1 if you have RSOVPU4])
+  RSOVPU4_SUPPORT="disabled"
+fi
+AM_CONDITIONAL(HAVE_RSOVPU4, [test "x$HAVE_RSOVPU4" = "xyes"])
 
 AC_CONFIG_FILES([Makefile src/Makefile src/rsovpu4/Makefile])
 AC_OUTPUT
@@ -76,6 +93,7 @@ AC_MSG_RESULT([
   $PACKAGE $VERSION:  Automatic configuration OK.
 
     HMP3D support: ............... $HMP3D_SUPPORT
+    RSOVPU4 support: ............. $RSOVPU4_SUPPORT
 
 ------------------------------------------------------------------------
 ])
