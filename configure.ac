@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(omxil-component-mycodec, 0.5.0, [my.email.address@example.com])
+AC_INIT(openmax-sh4, 0.5.0, [conrad@metadecks.org])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([library_entry_point.c])
 AC_CONFIG_HEADER([config.h])
@@ -24,7 +24,7 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
 
 # Add a check for your codec library here, eg.
-# PKG_CHECK_MODULES([MYCODEC], [mycodec])
+PKG_CHECK_MODULES([RSOVPU4], [rsovpu4])
 
 PKG_CHECK_MODULES([OMXIL], [libomxil-bellagio])
 
