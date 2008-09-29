@@ -1,5 +1,5 @@
 /**
-  @file src/components/ffmpeg/omx_videodec_component.h
+  @file src/components/ffmpeg/omx_rsovpu4dec_component.h
   
   This component implements an H.264 / MPEG-4 AVC video decoder. 
   The H.264 / MPEG-4 AVC Video decoder is based on the FFmpeg software library.
@@ -44,6 +44,9 @@
 #include <string.h>
 
 /* Specific include files */
+#include <rsovpu4/rsovpu4_decoder.h>
+
+#if 0
 #if FFMPEG_LIBNAME_HEADERS
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -55,26 +58,21 @@
 #include <ffmpeg/swscale.h>
 #include <ffmpeg/avutil.h>
 #endif
+#endif
 
 
 #define VIDEO_DEC_BASE_NAME "OMX.st.video_decoder"
-#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4"
-#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc"
+#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4.rsovpu4"
+#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc.rsovpu4"
 #define VIDEO_DEC_MPEG4_ROLE "video_decoder.mpeg4"
 #define VIDEO_DEC_H264_ROLE "video_decoder.avc"
 
 /** Video Decoder component private structure.
   */
-DERIVEDCLASS(omx_videodec_component_PrivateType, omx_base_filter_PrivateType)
-#define omx_videodec_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
-  /** @param avCodec pointer to the FFmpeg video decoder */ \
-  AVCodec *avCodec; \
-  /** @param avCodecContext pointer to FFmpeg decoder context  */ \
-  AVCodecContext *avCodecContext;  \
-  /** @param picture pointer to FFmpeg AVFrame  */ \
-  AVFrame *avFrame; \
-  /** @param semaphore for avcodec access syncrhonization */\
-  tsem_t* avCodecSyncSem; \
+DERIVEDCLASS(omx_rsovpu4dec_component_PrivateType, omx_base_filter_PrivateType)
+#define omx_rsovpu4dec_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
+  /** @param decoder RSOVPU4_Decoder handle */  \
+  RSOVPU4_Decoder * decoder;  \
   /** @param pVideoMpeg4 Referece to OMX_VIDEO_PARAM_MPEG4TYPE structure*/  \
   OMX_VIDEO_PARAM_MPEG4TYPE pVideoMpeg4;  \
   /** @param pVideoAvc Reference to OMX_VIDEO_PARAM_AVCTYPE structure */ \
@@ -93,49 +91,52 @@ DERIVEDCLASS(omx_videodec_component_PrivateType, omx_base_filter_PrivateType)
   OMX_S32 isNewBuffer;  \
   /** @param video_coding_type Field that indicate the supported video format of video decoder */ \
   OMX_U32 video_coding_type;   \
-  /** @param eOutFramePixFmt Field that indicate output frame pixel format */ \
-  enum PixelFormat eOutFramePixFmt; \
   /** @param extradata pointer to extradata*/ \
   OMX_U8* extradata; \
   /** @param extradata_size extradata size*/ \
   OMX_U32 extradata_size;
-ENDCLASS(omx_videodec_component_PrivateType)
+ENDCLASS(omx_rsovpu4dec_component_PrivateType)
+
+#if 0
+  /** @param eOutFramePixFmt Field that indicate output frame pixel format */ \
+  enum PixelFormat eOutFramePixFmt; 
+#endif
 
 /* Component private entry points declaration */
-OMX_ERRORTYPE omx_videodec_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
-OMX_ERRORTYPE omx_videodec_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_videodec_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_videodec_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_videodec_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
+OMX_ERRORTYPE omx_rsovpu4dec_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
+OMX_ERRORTYPE omx_rsovpu4dec_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_rsovpu4dec_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_rsovpu4dec_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_rsovpu4dec_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
 
-void omx_videodec_component_BufferMgmtCallback(
+void omx_rsovpu4dec_component_BufferMgmtCallback(
   OMX_COMPONENTTYPE *openmaxStandComp,
   OMX_BUFFERHEADERTYPE* inputbuffer,
   OMX_BUFFERHEADERTYPE* outputbuffer);
 
-OMX_ERRORTYPE omx_videodec_component_GetParameter(
+OMX_ERRORTYPE omx_rsovpu4dec_component_GetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_INOUT OMX_PTR ComponentParameterStructure);
 
-OMX_ERRORTYPE omx_videodec_component_SetParameter(
+OMX_ERRORTYPE omx_rsovpu4dec_component_SetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_IN  OMX_PTR ComponentParameterStructure);
 
-OMX_ERRORTYPE omx_videodec_component_ComponentRoleEnum(
+OMX_ERRORTYPE omx_rsovpu4dec_component_ComponentRoleEnum(
   OMX_IN OMX_HANDLETYPE hComponent,
   OMX_OUT OMX_U8 *cRole,
   OMX_IN OMX_U32 nIndex);
 
 void SetInternalVideoParameters(OMX_COMPONENTTYPE *openmaxStandComp);
 
-OMX_ERRORTYPE omx_videodec_component_SetConfig(
+OMX_ERRORTYPE omx_rsovpu4dec_component_SetConfig(
   OMX_HANDLETYPE hComponent,
   OMX_INDEXTYPE nIndex,
   OMX_PTR pComponentConfigStructure);
 
-OMX_ERRORTYPE omx_videodec_component_GetExtensionIndex(
+OMX_ERRORTYPE omx_rsovpu4dec_component_GetExtensionIndex(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_STRING cParameterName,
   OMX_OUT OMX_INDEXTYPE* pIndexType);

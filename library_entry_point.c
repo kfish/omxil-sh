@@ -32,7 +32,8 @@
 */
 
 #include <st_static_component_loader.h>
-#include <omx_skeleton_component.h>
+
+#include "omx_rsovpu4dec_component.h"
 
 /** The library entry point. It must have the same name for each
  * library of the components loaded by the ST static component loader.
@@ -48,6 +49,7 @@
  * @return number of components contained in the library 
  */
 int omx_component_library_Setup(stLoaderComponentType **stComponents) {
+  int i;
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "In %s \n",__func__);
   if (stComponents == NULL) {
@@ -63,24 +65,28 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
   if (stComponents[0]->name == NULL) {
     return OMX_ErrorInsufficientResources;
   }
-  strcpy(stComponents[0]->name, "OMX.st.audio_decoder.format.implementation");
-  // or strcpy(stComponents[0]->name, "OMX.st.video.format.implementation");
-  stComponents[0]->name_specific_length = 1; 
-  stComponents[0]->constructor = omx_skeleton_component_Constructor;
+  strcpy(stComponents[0]->name, "OMX.st.video.format.implementation");
+  stComponents[0]->name_specific_length = 2; 
+  stComponents[0]->constructor = omx_rsovpu4dec_component_Constructor;
 
   stComponents[0]->name_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));
   stComponents[0]->role_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));
 
-  stComponents[0]->name_specific[0] = calloc(1,OMX_MAX_STRINGNAME_SIZE);
-  if (stComponents[0]->name_specific[0] == NULL) {
-    return OMX_ErrorInsufficientResources;
+  for (i=0; i < stComponents[0]->name_specific_length; i++) {
+    stComponents[0]->name_specific[i] = calloc(1,OMX_MAX_STRINGNAME_SIZE);
+    if (stComponents[0]->name_specific[i] == NULL) {
+      return OMX_ErrorInsufficientResources;
+    }
+    stComponents[0]->role_specific[i] = calloc(1,OMX_MAX_STRINGNAME_SIZE);
+    if (stComponents[0]->role_specific[i] == NULL) {
+      return OMX_ErrorInsufficientResources;
+    }
   }
-  stComponents[0]->role_specific[0] = calloc(1,OMX_MAX_STRINGNAME_SIZE);
-  if (stComponents[0]->role_specific[0] == NULL) {
-    return OMX_ErrorInsufficientResources;
-  }
-  strcpy(stComponents[0]->name_specific[0], "OMX.st.audio_decoder.format.implementation");
-  strcpy(stComponents[0]->role_specific[0], "audio_decoder.format");
+
+  strcpy(stComponents[0]->name_specific[0], "OMX.st.video_decoder.mpeg4.rsovpu4");
+  strcpy(stComponents[0]->name_specific[1], "OMX.st.video_decoder.avc.rsovpu4");
+  strcpy(stComponents[0]->role_specific[0], "video_decoder.mpeg4");
+  strcpy(stComponents[0]->role_specific[1], "video_decoder.avc");
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "Out of %s \n",__func__);
   return 1;
