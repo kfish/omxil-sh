@@ -65,7 +65,7 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
   if (stComponents[0]->name == NULL) {
     return OMX_ErrorInsufficientResources;
   }
-  strcpy(stComponents[0]->name, "OMX.st.video.format.implementation");
+  strcpy(stComponents[0]->name, "OMX.st.video_decoder");
   stComponents[0]->name_specific_length = 2; 
   stComponents[0]->constructor = omx_rsovpu4dec_component_Constructor;
 
