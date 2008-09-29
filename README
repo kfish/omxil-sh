@@ -1,0 +1,18 @@
+
+This is a skeleton source project for creating a standalone OpenMax IL component
+using the Bellagio OpenMax IL project framework.
+
+This source archive uses the GNU autotools to build. Ensure that the standard GNU
+build environment is available, including autoconf, automake, pkg-config.
+
+To build:
+
+autoreconf -vif
+./configure
+make
+make install
+
+To register the resulting OpenMax IL component:
+
+omxil-bellagio-register
+
