@@ -1,8 +1,12 @@
 /**
-  @file src/components/ffmpeg/omx_rsovpu4dec_component.c
+  @file omx_rsovpu4dec_component.c
   
   This component implements H.264 / MPEG-4 AVC video decoder. 
-  The H.264 / MPEG-4 AVC Video decoder is based on the FFmpeg software library.
+  The H.264 / MPEG-4 AVC Video decoder is based on librsovpu4.
+
+  Copyright (C) 2008      Renesas Solutions
+
+  Adapted from the Bellagio libomxil ffmpeg videodec component,
 
   Copyright (C) 2007-2008 STMicroelectronics
   Copyright (C) 2007-2008 Nokia Corporation and/or its subsidiary(-ies)
@@ -213,7 +217,7 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_Destructor(OMX_COMPONENTTYPE *openmaxStan
 }
 
 
-/** It initializates the FFmpeg framework, and opens an FFmpeg videodecoder of type specified by IL client 
+/** Initialize librsovpu4, and open a decoder for the format specified by IL client 
   */ 
 OMX_ERRORTYPE omx_rsovpu4dec_component_ffmpegLibInit(omx_rsovpu4dec_component_PrivateType* omx_rsovpu4dec_component_Private) {
 
@@ -437,6 +441,47 @@ static inline void UpdateFrameSize(OMX_COMPONENTTYPE *openmaxStandComp) {
   }
 }
 
+/* local output callback, should be static */
+static int
+vpu4_decoded (RSOVPU4_Decoder * decoder,
+              unsigned char * y_buf, int y_size,
+              unsigned char * c_buf, int c_size,
+              void * user_data)
+{
+  OMX_BUFFERHEADERTYPE* pOutputBuffer = (OMX_BUFFERHEADERTYPE *)user_data;
+  OMX_U8* outputCurrBuffer;
+
+  outputCurrBuffer = pOutputBuffer->pBuffer;
+
+  memcpy (outputCurrBuffer, y_buf, y_size);
+  outputCurrBuffer += y_size;
+  pOutputBuffer->nFilledLen += y_size;
+
+  memcpy (outputCurrBuffer, c_buf, c_size);
+  pOutputBuffer->nFilledLen += c_size;
+
+#if 0
+    mp_image_t *mpi = (mp_image_t *)user_data;
+    static unsigned char *c;
+    int i;
+
+    memcpy (mpi->planes[0], y_buf, y_size);
+
+#if 0
+    c = &mpi->planes[0][10000];
+    printf ("\t%x%x%x%x %x%x%x%x\n", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
+#endif
+
+    c = c_buf;
+    for (i = 0; i < c_size/2; i++) {
+      mpi->planes[1][i] = *c++;
+      mpi->planes[2][i] = *c++;
+    }
+#endif
+
+    return 0;
+}
+
 /** This function is used to process the input buffer and provide one output buffer
   */
 void omx_rsovpu4dec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* pInputBuffer, OMX_BUFFERHEADERTYPE* pOutputBuffer) {
@@ -481,6 +526,9 @@ void omx_rsovpu4dec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStand
           omx_rsovpu4dec_component_Private->inputCurrBuffer, 
           omx_rsovpu4dec_component_Private->inputCurrLength);
 #endif
+
+    rsovpu4_decoder_set_decoded_callback (omx_rsovpu4dec_component_Private->decoder,
+                                          vpu4_decoded, pOutputBuffer);
 
     ret = rsovpu4_decode (omx_rsovpu4dec_component_Private->decoder,
                           omx_rsovpu4dec_component_Private->inputCurrBuffer, 
