@@ -83,8 +83,8 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
     }
   }
 
-  strcpy(stComponents[0]->name_specific[0], "OMX.st.video_decoder.mpeg4.rsovpu4");
-  strcpy(stComponents[0]->name_specific[1], "OMX.st.video_decoder.avc.rsovpu4");
+  strcpy(stComponents[0]->name_specific[0], "OMX.st.video_decoder.mpeg4");
+  strcpy(stComponents[0]->name_specific[1], "OMX.st.video_decoder.avc");
   strcpy(stComponents[0]->role_specific[0], "video_decoder.mpeg4");
   strcpy(stComponents[0]->role_specific[1], "video_decoder.avc");
 

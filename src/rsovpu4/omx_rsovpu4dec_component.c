@@ -131,7 +131,6 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_Constructor(OMX_COMPONENTTYPE *openmaxSta
     return OMX_ErrorInvalidComponentName;
   }  
 
-#if 0
   if(!omx_rsovpu4dec_component_Private->avCodecSyncSem) {
     omx_rsovpu4dec_component_Private->avCodecSyncSem = calloc(1,sizeof(tsem_t));
     if(omx_rsovpu4dec_component_Private->avCodecSyncSem == NULL) {
@@ -139,7 +138,6 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_Constructor(OMX_COMPONENTTYPE *openmaxSta
     }
     tsem_init(omx_rsovpu4dec_component_Private->avCodecSyncSem, 0);
   }
-#endif
 
   SetInternalVideoParameters(openmaxStandComp);
 
@@ -156,8 +154,8 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_Constructor(OMX_COMPONENTTYPE *openmaxSta
     */
   omx_rsovpu4dec_component_Private->decoder = NULL;
   omx_rsovpu4dec_component_Private->avcodecReady = OMX_FALSE;
-  omx_rsovpu4dec_component_Private->extradata = NULL;
-  omx_rsovpu4dec_component_Private->extradata_size = 0;
+  //omx_rsovpu4dec_component_Private->extradata = NULL;
+  //omx_rsovpu4dec_component_Private->extradata_size = 0;
   omx_rsovpu4dec_component_Private->BufferMgmtCallback = omx_rsovpu4dec_component_BufferMgmtCallback;
 
   /** initializing the codec context etc that was done earlier by ffmpeglibinit function */
@@ -184,18 +182,18 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_Destructor(OMX_COMPONENTTYPE *openmaxStan
   omx_rsovpu4dec_component_PrivateType* omx_rsovpu4dec_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_U32 i;
   
+#if 0
   if(omx_rsovpu4dec_component_Private->extradata) {
     free(omx_rsovpu4dec_component_Private->extradata);
     omx_rsovpu4dec_component_Private->extradata=NULL;
   }
+#endif
 
-#if 0
   if(omx_rsovpu4dec_component_Private->avCodecSyncSem) {
     tsem_deinit(omx_rsovpu4dec_component_Private->avCodecSyncSem); 
     free(omx_rsovpu4dec_component_Private->avCodecSyncSem);
     omx_rsovpu4dec_component_Private->avCodecSyncSem = NULL;
   }
-#endif
 
   /* frees port/s */   
   if (omx_rsovpu4dec_component_Private->ports) {   
@@ -285,8 +283,8 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_ffmpegLibInit(omx_rsovpu4dec_component_Pr
     DEBUG(DEB_LEV_ERR, "Could not open codec\n");
     return OMX_ErrorInsufficientResources;
   }
-  //tsem_up(omx_rsovpu4dec_component_Private->avCodecSyncSem);
 #endif
+  tsem_up(omx_rsovpu4dec_component_Private->avCodecSyncSem);
 
   DEBUG(DEB_LEV_SIMPLE_SEQ, "done\n");
 
@@ -513,7 +511,7 @@ void omx_rsovpu4dec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStand
 
   while (!nOutputFilled) {
     if (omx_rsovpu4dec_component_Private->isFirstBuffer) {
-      //tsem_down(omx_rsovpu4dec_component_Private->avCodecSyncSem);
+      tsem_down(omx_rsovpu4dec_component_Private->avCodecSyncSem);
       omx_rsovpu4dec_component_Private->isFirstBuffer = 0;
     }
 
@@ -945,6 +943,7 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_SetConfig(
       pExtradata = (OMX_VENDOR_EXTRADATATYPE*)pComponentConfigStructure;
       if (pExtradata->nPortIndex <= 1) {
         /** copy the extradata in the codec context private structure */
+#if 0
         omx_rsovpu4dec_component_Private->extradata_size = (OMX_U32)pExtradata->nDataSize;
         if(omx_rsovpu4dec_component_Private->extradata_size > 0) {
           if(omx_rsovpu4dec_component_Private->extradata) {
@@ -955,6 +954,7 @@ OMX_ERRORTYPE omx_rsovpu4dec_component_SetConfig(
         } else {
                   DEBUG(DEB_LEV_SIMPLE_SEQ,"extradata size is 0 !!!\n");
         }
+#endif
       } else {
           return OMX_ErrorBadPortIndex;
       }

@@ -62,8 +62,8 @@
 
 
 #define VIDEO_DEC_BASE_NAME "OMX.st.video_decoder"
-#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4.rsovpu4"
-#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc.rsovpu4"
+#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4"
+#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc"
 #define VIDEO_DEC_MPEG4_ROLE "video_decoder.mpeg4"
 #define VIDEO_DEC_H264_ROLE "video_decoder.avc"
 
@@ -73,6 +73,8 @@ DERIVEDCLASS(omx_rsovpu4dec_component_PrivateType, omx_base_filter_PrivateType)
 #define omx_rsovpu4dec_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
   /** @param decoder RSOVPU4_Decoder handle */  \
   RSOVPU4_Decoder * decoder;  \
+  /** @param semaphore for avcodec access syncrhonization */  \
+  tsem_t* avCodecSyncSem; \
   /** @param pVideoMpeg4 Referece to OMX_VIDEO_PARAM_MPEG4TYPE structure*/  \
   OMX_VIDEO_PARAM_MPEG4TYPE pVideoMpeg4;  \
   /** @param pVideoAvc Reference to OMX_VIDEO_PARAM_AVCTYPE structure */ \
