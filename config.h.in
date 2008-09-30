@@ -3,6 +3,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* Define to 1 if you have HAACD */
+#undef HAVE_HAACD
+
 /* Define to 1 if you have HMP3D */
 #undef HAVE_HMP3D
 
