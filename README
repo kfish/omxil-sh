@@ -1,5 +1,5 @@
 
-This is a skeleton source project for creating a standalone OpenMax IL component
+This is a collection of standalone OpenMax IL components for SH-Mobile,
 using the Bellagio OpenMax IL project framework.
 
 This source archive uses the GNU autotools to build. Ensure that the standard GNU
@@ -12,7 +12,7 @@ autoreconf -vif
 make
 make install
 
-To register the resulting OpenMax IL component:
+To register the resulting OpenMax IL components:
 
 omxil-bellagio-register
 
