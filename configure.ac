@@ -132,7 +132,14 @@ else
 fi
 AM_CONDITIONAL(HAVE_RSOVPU4, [test "x$HAVE_RSOVPU4" = "xyes"])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/haacd/Makefile src/hmp3d/Makefile src/rsovpu4/Makefile])
+AC_CONFIG_FILES([
+Makefile
+src/Makefile
+src/haacd/Makefile
+src/hmp3d/Makefile
+src/rsovpu4/Makefile
+src/tools/Makefile
+])
 AC_OUTPUT
 
 AC_MSG_RESULT([

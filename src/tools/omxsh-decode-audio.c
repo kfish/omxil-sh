@@ -31,7 +31,7 @@
 */
 
 
-#include "omxaudiodectest.h"
+#include "omxsh-decode-audio.h"
 
 #define MP3_TYPE_SEL    1
 #define VORBIS_TYPE_SEL 2

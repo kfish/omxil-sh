@@ -1,2 +1,2 @@
 
-SUBDIRS = haacd hmp3d rsovpu4
+SUBDIRS = haacd hmp3d rsovpu4 tools

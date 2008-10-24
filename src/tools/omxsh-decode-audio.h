@@ -1,5 +1,5 @@
 /**
-  @file test/components/audio/omxaudiodectest.h
+  @file src/tools/omxsh_decode_audio.h
   
   Test application that uses three OpenMAX components, a file reader,an audio decoder 
   and an ALSA sink. The application receives an compressed audio stream on input port
@@ -30,8 +30,8 @@
   Author $Author$
 */
 
-#ifndef __OMXAUDIODECTEST_H__
-#define __OMXAUDIODECTEST_H__
+#ifndef __OMXSH_DECODE_AUDIO_H__
+#define __OMXSH_DECODE_AUDIO_H__
 
 #include <stdio.h>
 #include <stdlib.h>
