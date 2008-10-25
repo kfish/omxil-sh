@@ -32,7 +32,7 @@
 /** modification to include audio formats */
 #include <OMX_Audio.h>
 
-#include "omx_hmp3d_component.h"
+#include "omx_shmp3_component.h"
 
 #define XADR    (HMP3D_T_XRAM *)0xe5007000
 #define YADR    (HMP3D_T_YRAM *)0xe5017000
@@ -51,16 +51,16 @@ static OMX_U32 noHMP3DDecInstance = 0;
   * @param cComponentName is the name of the component to be initialized
   */
 
-OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandComp, OMX_STRING cComponentName) {
+OMX_ERRORTYPE omx_shmp3_component_Constructor( OMX_COMPONENTTYPE *openmaxStandComp, OMX_STRING cComponentName) {
 
   OMX_ERRORTYPE err = OMX_ErrorNone;  
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private;
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private;
   omx_base_audio_PortType *inPort,*outPort;
   OMX_U32 i;
 
   if (!openmaxStandComp->pComponentPrivate) {
     DEBUG(DEB_LEV_FUNCTION_NAME, "In %s, allocating component\n", __func__);
-    openmaxStandComp->pComponentPrivate = calloc(1, sizeof(omx_hmp3d_component_PrivateType));
+    openmaxStandComp->pComponentPrivate = calloc(1, sizeof(omx_shmp3_component_PrivateType));
     if(openmaxStandComp->pComponentPrivate == NULL)  {
       return OMX_ErrorInsufficientResources;
     }
@@ -68,8 +68,8 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
     DEBUG(DEB_LEV_FUNCTION_NAME, "In %s, Error Component %x Already Allocated\n", __func__, (int)openmaxStandComp->pComponentPrivate);
   }
 
-  omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
-  omx_hmp3d_component_Private->ports = NULL;
+  omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shmp3_component_Private->ports = NULL;
 
   /** we could create our own port structures here
     * fixme maybe the base class could use a "port factory" function pointer?  
@@ -80,28 +80,28 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
   /** first we set the parameter common to both formats
     * parameters related to input port which does not depend upon input audio format
     */
-  omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nStartPortNumber = 0;
-  omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts = 2;
+  omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nStartPortNumber = 0;
+  omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts = 2;
 
   /** Allocate Ports and call port constructor. */  
-  if (omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts && !omx_hmp3d_component_Private->ports) {
-    omx_hmp3d_component_Private->ports = calloc(omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts, sizeof(omx_base_PortType *));
-    if (!omx_hmp3d_component_Private->ports) {
+  if (omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts && !omx_shmp3_component_Private->ports) {
+    omx_shmp3_component_Private->ports = calloc(omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts, sizeof(omx_base_PortType *));
+    if (!omx_shmp3_component_Private->ports) {
       return OMX_ErrorInsufficientResources;
     }
-    for (i=0; i < omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
-      omx_hmp3d_component_Private->ports[i] = calloc(1, sizeof(omx_base_audio_PortType));
-      if (!omx_hmp3d_component_Private->ports[i]) {
+    for (i=0; i < omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
+      omx_shmp3_component_Private->ports[i] = calloc(1, sizeof(omx_base_audio_PortType));
+      if (!omx_shmp3_component_Private->ports[i]) {
         return OMX_ErrorInsufficientResources;
       }
     }
   }
 
-  base_audio_port_Constructor(openmaxStandComp, &omx_hmp3d_component_Private->ports[0], 0, OMX_TRUE);
-  base_audio_port_Constructor(openmaxStandComp, &omx_hmp3d_component_Private->ports[1], 1, OMX_FALSE);
+  base_audio_port_Constructor(openmaxStandComp, &omx_shmp3_component_Private->ports[0], 0, OMX_TRUE);
+  base_audio_port_Constructor(openmaxStandComp, &omx_shmp3_component_Private->ports[1], 1, OMX_FALSE);
 
   /* parameters related to input port */
-  inPort = (omx_base_audio_PortType *) omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
+  inPort = (omx_base_audio_PortType *) omx_shmp3_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
 
   inPort->sPortParam.nBufferSize = DEFAULT_IN_BUFFER_SIZE;
   strcpy(inPort->sPortParam.format.audio.cMIMEType, "audio/mpeg");
@@ -109,18 +109,18 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
 
   inPort->sAudioParam.eEncoding = OMX_AUDIO_CodingMP3;
 
-  setHeader(&omx_hmp3d_component_Private->pAudioMp3,sizeof(OMX_AUDIO_PARAM_MP3TYPE));
-  omx_hmp3d_component_Private->pAudioMp3.nPortIndex = 0;
-  omx_hmp3d_component_Private->pAudioMp3.nChannels = 2;                                                                                                                          
-  omx_hmp3d_component_Private->pAudioMp3.nBitRate = 28000;
-  omx_hmp3d_component_Private->pAudioMp3.nSampleRate = 44100;
-  omx_hmp3d_component_Private->pAudioMp3.nAudioBandWidth = 0; 
-  omx_hmp3d_component_Private->pAudioMp3.eChannelMode = OMX_AUDIO_ChannelModeStereo;
-  omx_hmp3d_component_Private->pAudioMp3.eFormat=OMX_AUDIO_MP3StreamFormatMP1Layer3;
+  setHeader(&omx_shmp3_component_Private->pAudioMp3,sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+  omx_shmp3_component_Private->pAudioMp3.nPortIndex = 0;
+  omx_shmp3_component_Private->pAudioMp3.nChannels = 2;                                                                                                                          
+  omx_shmp3_component_Private->pAudioMp3.nBitRate = 28000;
+  omx_shmp3_component_Private->pAudioMp3.nSampleRate = 44100;
+  omx_shmp3_component_Private->pAudioMp3.nAudioBandWidth = 0; 
+  omx_shmp3_component_Private->pAudioMp3.eChannelMode = OMX_AUDIO_ChannelModeStereo;
+  omx_shmp3_component_Private->pAudioMp3.eFormat=OMX_AUDIO_MP3StreamFormatMP1Layer3;
   
   /**  common parameters related to output port */
 
-  outPort = (omx_base_audio_PortType *) omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX];
+  outPort = (omx_base_audio_PortType *) omx_shmp3_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX];
 
   outPort->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingPCM;
   outPort->sPortParam.nBufferSize = DEFAULT_OUT_BUFFER_SIZE;
@@ -130,24 +130,24 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
   /** settings of output port 
     * output is pcm audo format - so set the pcm mode settings
     */ 
-  setHeader(&omx_hmp3d_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
-  omx_hmp3d_component_Private->pAudioPcmMode.nPortIndex = 1;
-  omx_hmp3d_component_Private->pAudioPcmMode.nChannels = 2;
-  omx_hmp3d_component_Private->pAudioPcmMode.eNumData = OMX_NumericalDataSigned;
-  omx_hmp3d_component_Private->pAudioPcmMode.eEndian = OMX_EndianLittle;
-  omx_hmp3d_component_Private->pAudioPcmMode.bInterleaved = OMX_TRUE;
-  omx_hmp3d_component_Private->pAudioPcmMode.nBitPerSample = 16;
-  omx_hmp3d_component_Private->pAudioPcmMode.nSamplingRate = 44100;
-  omx_hmp3d_component_Private->pAudioPcmMode.ePCMMode = OMX_AUDIO_PCMModeLinear;
-  omx_hmp3d_component_Private->pAudioPcmMode.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
-  omx_hmp3d_component_Private->pAudioPcmMode.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
+  setHeader(&omx_shmp3_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
+  omx_shmp3_component_Private->pAudioPcmMode.nPortIndex = 1;
+  omx_shmp3_component_Private->pAudioPcmMode.nChannels = 2;
+  omx_shmp3_component_Private->pAudioPcmMode.eNumData = OMX_NumericalDataSigned;
+  omx_shmp3_component_Private->pAudioPcmMode.eEndian = OMX_EndianLittle;
+  omx_shmp3_component_Private->pAudioPcmMode.bInterleaved = OMX_TRUE;
+  omx_shmp3_component_Private->pAudioPcmMode.nBitPerSample = 16;
+  omx_shmp3_component_Private->pAudioPcmMode.nSamplingRate = 44100;
+  omx_shmp3_component_Private->pAudioPcmMode.ePCMMode = OMX_AUDIO_PCMModeLinear;
+  omx_shmp3_component_Private->pAudioPcmMode.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
+  omx_shmp3_component_Private->pAudioPcmMode.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
 
   /** some more component private structure initialization */
-  omx_hmp3d_component_Private->BufferMgmtCallback = omx_hmp3d_component_BufferMgmtCallbackHMP3D;  
-  omx_hmp3d_component_Private->messageHandler = omx_hmp3d_component_MessageHandler;
-  omx_hmp3d_component_Private->destructor = omx_hmp3d_component_Destructor;
-  openmaxStandComp->SetParameter = omx_hmp3d_component_SetParameter;
-  openmaxStandComp->GetParameter = omx_hmp3d_component_GetParameter;
+  omx_shmp3_component_Private->BufferMgmtCallback = omx_shmp3_component_BufferMgmtCallbackHMP3D;  
+  omx_shmp3_component_Private->messageHandler = omx_shmp3_component_MessageHandler;
+  omx_shmp3_component_Private->destructor = omx_shmp3_component_Destructor;
+  openmaxStandComp->SetParameter = omx_shmp3_component_SetParameter;
+  openmaxStandComp->GetParameter = omx_shmp3_component_GetParameter;
 
   /** increase the counter of initialized components and check against the maximum limit */
   noHMP3DDecInstance++;
@@ -156,20 +156,20 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
     * if audio coding type is set other than hmp3d then error returned
     */
   if(!strcmp(cComponentName, AUDIO_DEC_MP3_NAME)) {
-    omx_hmp3d_component_Private->audio_coding_type = OMX_AUDIO_CodingMP3;
+    omx_shmp3_component_Private->audio_coding_type = OMX_AUDIO_CodingMP3;
   }  else if (!strcmp(cComponentName, AUDIO_DEC_BASE_NAME)) {
-    omx_hmp3d_component_Private->audio_coding_type = OMX_AUDIO_CodingUnused;
+    omx_shmp3_component_Private->audio_coding_type = OMX_AUDIO_CodingUnused;
   }  else  {
     /** IL client specified an invalid component name */
     return OMX_ErrorInvalidComponentName;
   }
 
-  if(!omx_hmp3d_component_Private->avCodecSyncSem) {
-    omx_hmp3d_component_Private->avCodecSyncSem = calloc(1, sizeof(tsem_t));
-    if(omx_hmp3d_component_Private->avCodecSyncSem == NULL) {
+  if(!omx_shmp3_component_Private->avCodecSyncSem) {
+    omx_shmp3_component_Private->avCodecSyncSem = calloc(1, sizeof(tsem_t));
+    if(omx_shmp3_component_Private->avCodecSyncSem == NULL) {
       return OMX_ErrorInsufficientResources;
     }
-    tsem_init(omx_hmp3d_component_Private->avCodecSyncSem, 0);
+    tsem_init(omx_shmp3_component_Private->avCodecSyncSem, 0);
   }
   if(noHMP3DDecInstance > MAX_COMPONENT_HMP3D) {
     return OMX_ErrorInsufficientResources;
@@ -181,24 +181,24 @@ OMX_ERRORTYPE omx_hmp3d_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
 
 /** The destructor
  */
-OMX_ERRORTYPE omx_hmp3d_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shmp3_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_U32 i;
 
-  if(omx_hmp3d_component_Private->avCodecSyncSem) {
-    tsem_deinit(omx_hmp3d_component_Private->avCodecSyncSem);
-    free(omx_hmp3d_component_Private->avCodecSyncSem);
-    omx_hmp3d_component_Private->avCodecSyncSem = NULL;
+  if(omx_shmp3_component_Private->avCodecSyncSem) {
+    tsem_deinit(omx_shmp3_component_Private->avCodecSyncSem);
+    free(omx_shmp3_component_Private->avCodecSyncSem);
+    omx_shmp3_component_Private->avCodecSyncSem = NULL;
   }
 
   /* frees port/s */
-  if (omx_hmp3d_component_Private->ports) {
-    for (i=0; i < omx_hmp3d_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
-      if(omx_hmp3d_component_Private->ports[i])
-        omx_hmp3d_component_Private->ports[i]->PortDestructor(omx_hmp3d_component_Private->ports[i]);
+  if (omx_shmp3_component_Private->ports) {
+    for (i=0; i < omx_shmp3_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
+      if(omx_shmp3_component_Private->ports[i])
+        omx_shmp3_component_Private->ports[i]->PortDestructor(omx_shmp3_component_Private->ports[i]);
     }
-    free(omx_hmp3d_component_Private->ports);
-    omx_hmp3d_component_Private->ports=NULL;
+    free(omx_shmp3_component_Private->ports);
+    omx_shmp3_component_Private->ports=NULL;
   }
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "Destructor of hmp3d decoder component is called\n");
@@ -212,26 +212,26 @@ OMX_ERRORTYPE omx_hmp3d_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp
 
 /** sets some parameters of the private structure for decoding */
 
-void omx_hmp3d_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private;
+void omx_shmp3_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private;
   omx_base_audio_PortType *pPort;
 
-  omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   
-  if(omx_hmp3d_component_Private->audio_coding_type == OMX_AUDIO_CodingMP3)  {
-    strcpy(omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.cMIMEType, "audio/mp3");
-    omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingMP3;
+  if(omx_shmp3_component_Private->audio_coding_type == OMX_AUDIO_CodingMP3)  {
+    strcpy(omx_shmp3_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.cMIMEType, "audio/mp3");
+    omx_shmp3_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingMP3;
                                                                                                                              
-    setHeader(&omx_hmp3d_component_Private->pAudioMp3,sizeof(OMX_AUDIO_PARAM_MP3TYPE));
-    omx_hmp3d_component_Private->pAudioMp3.nPortIndex = 0;
-    omx_hmp3d_component_Private->pAudioMp3.nChannels = 2;                                                                                                                          
-    omx_hmp3d_component_Private->pAudioMp3.nBitRate = 28000;
-    omx_hmp3d_component_Private->pAudioMp3.nSampleRate = 44100;
-    omx_hmp3d_component_Private->pAudioMp3.nAudioBandWidth = 0; 
-    omx_hmp3d_component_Private->pAudioMp3.eChannelMode = OMX_AUDIO_ChannelModeStereo;
-    omx_hmp3d_component_Private->pAudioMp3.eFormat=OMX_AUDIO_MP3StreamFormatMP1Layer3;
+    setHeader(&omx_shmp3_component_Private->pAudioMp3,sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+    omx_shmp3_component_Private->pAudioMp3.nPortIndex = 0;
+    omx_shmp3_component_Private->pAudioMp3.nChannels = 2;                                                                                                                          
+    omx_shmp3_component_Private->pAudioMp3.nBitRate = 28000;
+    omx_shmp3_component_Private->pAudioMp3.nSampleRate = 44100;
+    omx_shmp3_component_Private->pAudioMp3.nAudioBandWidth = 0; 
+    omx_shmp3_component_Private->pAudioMp3.eChannelMode = OMX_AUDIO_ChannelModeStereo;
+    omx_shmp3_component_Private->pAudioMp3.eFormat=OMX_AUDIO_MP3StreamFormatMP1Layer3;
     
-    pPort = (omx_base_audio_PortType *) omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
+    pPort = (omx_base_audio_PortType *) omx_shmp3_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
     setHeader(&pPort->sAudioParam, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     pPort->sAudioParam.nPortIndex = 0;
     pPort->sAudioParam.nIndex = 0;
@@ -241,41 +241,41 @@ void omx_hmp3d_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandCo
 
 /** The Initialization function 
   */
-OMX_ERRORTYPE omx_hmp3d_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shmp3_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err = OMX_ErrorNone;
   OMX_U32 nBufferSize;
 
   void *xrammap, *yrammap;
 
   /** Temporary First Output buffer size*/
-  omx_hmp3d_component_Private->inputCurrBuffer = NULL;
-  omx_hmp3d_component_Private->inputCurrLength = 0;
-  nBufferSize = omx_hmp3d_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
-  omx_hmp3d_component_Private->internalOutputBuffer = malloc(nBufferSize);
-  memset(omx_hmp3d_component_Private->internalOutputBuffer, 0, nBufferSize);
-  omx_hmp3d_component_Private->isFirstBuffer = 1;
-  omx_hmp3d_component_Private->positionInOutBuf = 0;
-  omx_hmp3d_component_Private->isNewBuffer = 1;
+  omx_shmp3_component_Private->inputCurrBuffer = NULL;
+  omx_shmp3_component_Private->inputCurrLength = 0;
+  nBufferSize = omx_shmp3_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
+  omx_shmp3_component_Private->internalOutputBuffer = malloc(nBufferSize);
+  memset(omx_shmp3_component_Private->internalOutputBuffer, 0, nBufferSize);
+  omx_shmp3_component_Private->isFirstBuffer = 1;
+  omx_shmp3_component_Private->positionInOutBuf = 0;
+  omx_shmp3_component_Private->isNewBuffer = 1;
   
   /** initializing hmp3d decoder parameters */
   dsp_on ();
-  HMP3D_Open (&omx_hmp3d_component_Private->mp3, xrammap, yrammap);
+  HMP3D_Open (&omx_shmp3_component_Private->mp3, xrammap, yrammap);
 
   return err;
 };
 
 /** The Deinitialization function 
   */
-OMX_ERRORTYPE omx_hmp3d_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shmp3_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err = OMX_ErrorNone;
 
-  free(omx_hmp3d_component_Private->internalOutputBuffer);
-  omx_hmp3d_component_Private->internalOutputBuffer = NULL;
+  free(omx_shmp3_component_Private->internalOutputBuffer);
+  omx_shmp3_component_Private->internalOutputBuffer = NULL;
   
   /** reset the hmp3d decoder related parameters */
-  HMP3D_Close (&omx_hmp3d_component_Private->mp3);
+  HMP3D_Close (&omx_shmp3_component_Private->mp3);
 
   return err;
 }
@@ -285,9 +285,9 @@ OMX_ERRORTYPE omx_hmp3d_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
   * @param inputbuffer contains the input ogg file content
   * @param outputbuffer is returned along with its output pcm file content that is produced as a result of this function execution
   */
-void omx_hmp3d_component_BufferMgmtCallbackHMP3D(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
+void omx_shmp3_component_BufferMgmtCallbackHMP3D(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
 
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_U8* outputCurrBuffer;
   OMX_U32 outputLength;
   OMX_S32 result;  
@@ -305,10 +305,10 @@ void omx_hmp3d_component_BufferMgmtCallbackHMP3D(OMX_COMPONENTTYPE *openmaxStand
  
   DEBUG(DEB_LEV_FULL_SEQ, "input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
   /** Fill up the current input buffer when a new buffer has arrived */
-  if(omx_hmp3d_component_Private->isNewBuffer) {
-    omx_hmp3d_component_Private->inputCurrBuffer = inputbuffer->pBuffer;
-    omx_hmp3d_component_Private->inputCurrLength = inputbuffer->nFilledLen;
-    omx_hmp3d_component_Private->positionInOutBuf = 0;
+  if(omx_shmp3_component_Private->isNewBuffer) {
+    omx_shmp3_component_Private->inputCurrBuffer = inputbuffer->pBuffer;
+    omx_shmp3_component_Private->inputCurrLength = inputbuffer->nFilledLen;
+    omx_shmp3_component_Private->positionInOutBuf = 0;
 
     DEBUG(DEB_LEV_SIMPLE_SEQ, "new -- input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
 
@@ -321,7 +321,7 @@ void omx_hmp3d_component_BufferMgmtCallbackHMP3D(OMX_COMPONENTTYPE *openmaxStand
   outputbuffer->nOffset = 0;
   
   // Process data: Copy decoded and converted data into outputbuffer->pBuffer, and set outputbuffer->nFIlledLen
-  ret = HMP3D_Decode (&omx_hmp3d_component_Private->mp3,
+  ret = HMP3D_Decode (&omx_shmp3_component_Private->mp3,
                       inputbuffer->pBuffer, inputbuffer->nFilledLen,
                       outputbuffer->pBuffer, &outputbuffer->nFilledLen);
 
@@ -336,7 +336,7 @@ void omx_hmp3d_component_BufferMgmtCallbackHMP3D(OMX_COMPONENTTYPE *openmaxStand
   * @param nParamIndex is the indextype of the parameter
   * @param ComponentParameterStructure is the input structure containing parameter setings
   */
-OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
+OMX_ERRORTYPE omx_shmp3_component_SetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_IN  OMX_PTR ComponentParameterStructure)  {
@@ -350,7 +350,7 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
 
   /** Check which structure we are being fed and make control its header */
   OMX_COMPONENTTYPE *openmaxStandComp = (OMX_COMPONENTTYPE *)hComponent;
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
   omx_base_audio_PortType *port;
   if (ComponentParameterStructure == NULL) {
     return OMX_ErrorBadParameter;
@@ -368,7 +368,7 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
       break;
     }
     if (portIndex <= 1) {
-      port = (omx_base_audio_PortType *) omx_hmp3d_component_Private->ports[portIndex];
+      port = (omx_base_audio_PortType *) omx_shmp3_component_Private->ports[portIndex];
       memcpy(&port->sAudioParam,pAudioPortFormat, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     } else {
       return OMX_ErrorBadPortIndex;
@@ -384,7 +384,7 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
       DEBUG(DEB_LEV_ERR, "In %s Parameter Check Error=%x\n",__func__,err); 
       break;
     }
-    memcpy(&omx_hmp3d_component_Private->pAudioPcmMode, pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));          
+    memcpy(&omx_shmp3_component_Private->pAudioPcmMode, pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));          
     break;
 
   case OMX_IndexParamAudioMp3:
@@ -396,7 +396,7 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
       break;
     }
     if(pAudioMp3->nPortIndex == 0)  {
-      memcpy(&omx_hmp3d_component_Private->pAudioMp3, pAudioMp3, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+      memcpy(&omx_shmp3_component_Private->pAudioMp3, pAudioMp3, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
     } else  {
       return OMX_ErrorBadPortIndex;
     }
@@ -405,11 +405,11 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
   case OMX_IndexParamStandardComponentRole:
     pComponentRole = (OMX_PARAM_COMPONENTROLETYPE*)ComponentParameterStructure;
     if (!strcmp( (char*) pComponentRole->cRole, AUDIO_DEC_MP3_ROLE)) {
-      omx_hmp3d_component_Private->audio_coding_type = OMX_AUDIO_CodingMP3;
+      omx_shmp3_component_Private->audio_coding_type = OMX_AUDIO_CodingMP3;
     } else {
       return OMX_ErrorBadParameter;
     }
-    omx_hmp3d_component_SetInternalParameters(openmaxStandComp);
+    omx_shmp3_component_SetInternalParameters(openmaxStandComp);
     break;
 
   default: /*Call the base component function*/
@@ -423,7 +423,7 @@ OMX_ERRORTYPE omx_hmp3d_component_SetParameter(
   * @param nParamIndex is the indextype of the parameter
   * @param ComponentParameterStructure is the structure to contain obtained parameter setings
   */
-OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
+OMX_ERRORTYPE omx_shmp3_component_GetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_INOUT OMX_PTR ComponentParameterStructure)  {
@@ -435,7 +435,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
   omx_base_audio_PortType *port;
   OMX_ERRORTYPE err = OMX_ErrorNone;
   OMX_COMPONENTTYPE *openmaxStandComp = (OMX_COMPONENTTYPE *)hComponent;
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = (omx_hmp3d_component_PrivateType*)openmaxStandComp->pComponentPrivate;
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = (omx_shmp3_component_PrivateType*)openmaxStandComp->pComponentPrivate;
   if (ComponentParameterStructure == NULL) {
     return OMX_ErrorBadParameter;
   }
@@ -447,7 +447,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_PORT_PARAM_TYPE))) != OMX_ErrorNone) { 
       break;
     }
-    memcpy(ComponentParameterStructure, &omx_hmp3d_component_Private->sPortTypesParam, sizeof(OMX_PORT_PARAM_TYPE));
+    memcpy(ComponentParameterStructure, &omx_shmp3_component_Private->sPortTypesParam, sizeof(OMX_PORT_PARAM_TYPE));
     break;    
 
   case OMX_IndexParamAudioPortFormat:
@@ -456,7 +456,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
       break;
     }
     if (pAudioPortFormat->nPortIndex <= 1) {
-      port = (omx_base_audio_PortType *)omx_hmp3d_component_Private->ports[pAudioPortFormat->nPortIndex];
+      port = (omx_base_audio_PortType *)omx_shmp3_component_Private->ports[pAudioPortFormat->nPortIndex];
       memcpy(pAudioPortFormat, &port->sAudioParam, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     } else {
       return OMX_ErrorBadPortIndex;
@@ -471,7 +471,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
     if (pAudioPcmMode->nPortIndex > 1) {
       return OMX_ErrorBadPortIndex;
     }
-    memcpy(pAudioPcmMode, &omx_hmp3d_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
+    memcpy(pAudioPcmMode, &omx_shmp3_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
     break;
 
   case OMX_IndexParamAudioMp3:
@@ -482,7 +482,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_AUDIO_PARAM_MP3TYPE))) != OMX_ErrorNone) { 
       break;
     }
-    memcpy(pAudioMp3, &omx_hmp3d_component_Private->pAudioMp3, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+    memcpy(pAudioMp3, &omx_shmp3_component_Private->pAudioMp3, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
     break;
 
   case OMX_IndexParamStandardComponentRole:
@@ -490,7 +490,7 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_PARAM_COMPONENTROLETYPE))) != OMX_ErrorNone) { 
       break;
     }
-    if (omx_hmp3d_component_Private->audio_coding_type == OMX_AUDIO_CodingMP3) {
+    if (omx_shmp3_component_Private->audio_coding_type == OMX_AUDIO_CodingMP3) {
       strcpy( (char*) pComponentRole->cRole, AUDIO_DEC_MP3_ROLE);
     } else {
       strcpy( (char*) pComponentRole->cRole, "\0");;
@@ -506,21 +506,21 @@ OMX_ERRORTYPE omx_hmp3d_component_GetParameter(
 /** handles the message generated by the IL client 
   * @param message is the message type
   */
-OMX_ERRORTYPE omx_hmp3d_component_MessageHandler(OMX_COMPONENTTYPE* openmaxStandComp,internalRequestMessageType *message)  {
-  omx_hmp3d_component_PrivateType* omx_hmp3d_component_Private = (omx_hmp3d_component_PrivateType*)openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shmp3_component_MessageHandler(OMX_COMPONENTTYPE* openmaxStandComp,internalRequestMessageType *message)  {
+  omx_shmp3_component_PrivateType* omx_shmp3_component_Private = (omx_shmp3_component_PrivateType*)openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err;
 
   DEBUG(DEB_LEV_SIMPLE_SEQ, "In %s\n", __func__);
 
   if (message->messageType == OMX_CommandStateSet){
-    if ((message->messageParam == OMX_StateIdle) && (omx_hmp3d_component_Private->state == OMX_StateLoaded)) {
-      err = omx_hmp3d_component_Init(openmaxStandComp);
+    if ((message->messageParam == OMX_StateIdle) && (omx_shmp3_component_Private->state == OMX_StateLoaded)) {
+      err = omx_shmp3_component_Init(openmaxStandComp);
       if(err!=OMX_ErrorNone) { 
         DEBUG(DEB_LEV_ERR, "In %s hmp3d Decoder Init Failed=%x\n",__func__,err); 
         return err;
       }
-    } else if ((message->messageParam == OMX_StateLoaded) && (omx_hmp3d_component_Private->state == OMX_StateIdle)) {
-      err = omx_hmp3d_component_Deinit(openmaxStandComp);
+    } else if ((message->messageParam == OMX_StateLoaded) && (omx_shmp3_component_Private->state == OMX_StateIdle)) {
+      err = omx_shmp3_component_Deinit(openmaxStandComp);
       if(err!=OMX_ErrorNone) { 
         DEBUG(DEB_LEV_ERR, "In %s HMP3D Decoder Deinit Failed=%x\n",__func__,err); 
         return err;

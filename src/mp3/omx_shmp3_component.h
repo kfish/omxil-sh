@@ -1,5 +1,5 @@
 /**
-  @file src/components/vorbis/omx_haacd_component.h
+  @file src/components/vorbis/omx_shmp3_component.h
 
   This component implements a ogg-vorbis decoder. The vorbis decoder is based on libvorbis
   software library.
@@ -27,8 +27,8 @@
 
 */
 
-#ifndef _OMX_HAACD_COMPONENT_H_
-#define _OMX_HAACD_COMPONENT_H_
+#ifndef _OMX_HMP3D_COMPONENT_H_
+#define _OMX_HMP3D_COMPONENT_H_
 
 #include <OMX_Types.h>
 #include <OMX_Component.h>
@@ -39,38 +39,22 @@
 #include <omx_base_filter.h>
 
 /* Specific include files for your codec */
-#include <HAACD_ADL.h>
-
-typedef enum
-{
-//  UNDEFINED_CHANNEL_MODE,
-  MONO,
-  STEREO,
-  LC_STEREO,
-  PS_STEREO
-}
-CHANNEL_MODE;
+#include <HMP3D_Mp3.h>
 
 #define AUDIO_DEC_BASE_NAME "OMX.st.audio_decoder"
-#define AUDIO_DEC_AAC_NAME "OMX.st.audio_decoder.aac.haacd"
-#define AUDIO_DEC_AAC_ROLE "audio_decoder.aac"
+#define AUDIO_DEC_MP3_NAME "OMX.st.audio_decoder.mp3.shdsp"
+#define AUDIO_DEC_MP3_ROLE "audio_decoder.mp3"
 
 /** MyCodec component private structure.
  */
-DERIVEDCLASS(omx_haacd_component_PrivateType, omx_base_filter_PrivateType)
-#define omx_haacd_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
-  /** @param aac HAACD handle */  \
-  HAACD_AAC aac;  \
-  /** @param aacdts ADTS(Audio Data Transport Stream) header */  \
-  HAACD_AdtsHeader aacadts;  \
-  /** @param pce PCD(Program Config Element) header */  \
-  HAACD_PCE pce;  \
-  /** @param decopt Decode option */  \
-  int decopt;  \
+DERIVEDCLASS(omx_shmp3_component_PrivateType, omx_base_filter_PrivateType)
+#define omx_shmp3_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
+  /** @param mp3 HMP3D handle */  \
+  HMP3D_T_MP3 mp3;  \
   /** @param semaphore for avcodec access syncrhonization */\
   tsem_t* avCodecSyncSem; \
-  /** @param pAudioAac Reference to OMX_AUDIO_PARAM_AACPROFILETYPE structure */ \
-  OMX_AUDIO_PARAM_AACPROFILETYPE pAudioAac;  \
+  /** @param pAudioMp3 Reference to OMX_AUDIO_PARAM_MP3TYPE structure */ \
+  OMX_AUDIO_PARAM_MP3TYPE pAudioMp3;  \
   /** @param pAudioPcmMode Referece to OMX_AUDIO_PARAM_PCMMODETYPE structure*/  \
   OMX_AUDIO_PARAM_PCMMODETYPE pAudioPcmMode;  \
   /** @param minBufferLength Field that stores the minimun allowed size for ffmpeg decoder */ \
@@ -89,31 +73,31 @@ DERIVEDCLASS(omx_haacd_component_PrivateType, omx_base_filter_PrivateType)
   OMX_S32 isNewBuffer;  \
   /** @param audio_coding_type Field that indicate the supported audio format of audio decoder */ \
   OMX_U32 audio_coding_type;
-ENDCLASS(omx_haacd_component_PrivateType)
+ENDCLASS(omx_shmp3_component_PrivateType)
 
 /* Component private entry points declaration */
-OMX_ERRORTYPE omx_haacd_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
-OMX_ERRORTYPE omx_haacd_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_haacd_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_haacd_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_haacd_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
+OMX_ERRORTYPE omx_shmp3_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
+OMX_ERRORTYPE omx_shmp3_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shmp3_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shmp3_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shmp3_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
   
-void omx_haacd_component_BufferMgmtCallbackHAACD(
+void omx_shmp3_component_BufferMgmtCallbackHMP3D(
   OMX_COMPONENTTYPE *openmaxStandComp,
   OMX_BUFFERHEADERTYPE* inputbuffer,
   OMX_BUFFERHEADERTYPE* outputbuffer);
 
-OMX_ERRORTYPE omx_haacd_component_GetParameter(
+OMX_ERRORTYPE omx_shmp3_component_GetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_INOUT OMX_PTR ComponentParameterStructure);
 
-OMX_ERRORTYPE omx_haacd_component_SetParameter(
+OMX_ERRORTYPE omx_shmp3_component_SetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_IN  OMX_PTR ComponentParameterStructure);
 
-void omx_haacd_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp);
+void omx_shmp3_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp);
 
 
 #endif

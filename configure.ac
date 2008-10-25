@@ -37,8 +37,8 @@ HAVE_HAACD="no"
 HAACD_SUPPORT="no"
 
 ac_enable_haacd=yes
-AC_ARG_ENABLE(haacd,
-     [  --disable-haacd         disable building of HAACD support ],
+AC_ARG_ENABLE(aac,
+     [  --disable-aac           disable building of AAC support ],
      [ ac_enable_haacd=no ], [ ac_enable_haacd=yes] )
 
 if test "x${ac_enable_haacd}" = xyes ; then
@@ -69,7 +69,7 @@ if test "x${ac_enable_haacd}" = xyes ; then
     AC_DEFINE(HAVE_HAACD, [1], [Define to 1 if you have HAACD])
     HAACD_LIBS="-lSACP1 -lm"
     AC_SUBST(HAACD_LIBS)
-    HAACD_SUPPORT="yes"
+    HAACD_SUPPORT="yes (HAACD)"
   else
     AC_DEFINE(HAVE_HAACD, [0], [Define to 1 if you have HAACD])
   fi
@@ -84,8 +84,8 @@ HAVE_HMP3D="no"
 HMP3D_SUPPORT="no"
 
 ac_enable_hmp3d=yes
-AC_ARG_ENABLE(hmp3d,
-     [  --disable-hmp3d         disable building of HMP3D support ],
+AC_ARG_ENABLE(mp3,
+     [  --disable-mp3           disable building of MP3 support ],
      [ ac_enable_hmp3d=no ], [ ac_enable_hmp3d=yes] )
 
 if test "x${ac_enable_hmp3d}" = xyes ; then
@@ -97,7 +97,7 @@ if test "x${ac_enable_hmp3d}" = xyes ; then
     AC_DEFINE(HAVE_HMP3D, [1], [Define to 1 if you have HMP3D])
     HMP3D_LIBS="-lhmp3d -lm"
     AC_SUBST(HMP3D_LIBS)
-    HMP3D_SUPPORT="yes"
+    HMP3D_SUPPORT="yes (HMP3D)"
   else
     AC_DEFINE(HAVE_HMP3D, [0], [Define to 1 if you have HMP3D])
   fi
@@ -122,7 +122,7 @@ if test "x${ac_enable_rsovpu4}" = xyes ; then
   if test "x$HAVE_RSOVPU4" = "xyes" ; then
     AC_DEFINE(HAVE_RSOVPU4, [1], [Define to 1 if you have RSOVPU4])
     AC_SUBST(RSOVPU4_LIBS)
-    RSOVPU4_SUPPORT="yes"
+    RSOVPU4_SUPPORT="yes (RSOVPU4)"
   else
     AC_DEFINE(HAVE_RSOVPU4, [0], [Define to 1 if you have RSOVPU4])
   fi
@@ -135,8 +135,8 @@ AM_CONDITIONAL(HAVE_RSOVPU4, [test "x$HAVE_RSOVPU4" = "xyes"])
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
-src/haacd/Makefile
-src/hmp3d/Makefile
+src/aac/Makefile
+src/mp3/Makefile
 src/rsovpu4/Makefile
 src/tools/Makefile
 ])
@@ -146,9 +146,9 @@ AC_MSG_RESULT([
 ------------------------------------------------------------------------
   $PACKAGE $VERSION:  Automatic configuration OK.
 
-    HAACD support: ............... $HAACD_SUPPORT
-    HMP3D support: ............... $HMP3D_SUPPORT
-    RSOVPU4 support: ............. $RSOVPU4_SUPPORT
+    AAC support: ................. $HAACD_SUPPORT
+    MP3 support: ................. $HMP3D_SUPPORT
+    VPU support: ................. $RSOVPU4_SUPPORT
 
 ------------------------------------------------------------------------
 ])

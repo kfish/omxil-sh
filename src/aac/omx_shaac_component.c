@@ -32,7 +32,7 @@
 /** modification to include audio formats */
 #include <OMX_Audio.h>
 
-#include "omx_haacd_component.h"
+#include "omx_shaac_component.h"
 
 #define XRAM_P0 (short *)0xe5007000     // X memory page0 start address
 #define YRAM_P0 (short *)0xe5017000     // X memory page0 start address
@@ -60,16 +60,16 @@ static OMX_U32 noHAACDDecInstance = 0;
   * @param cComponentName is the name of the component to be initialized
   */
 
-OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandComp, OMX_STRING cComponentName) {
+OMX_ERRORTYPE omx_shaac_component_Constructor( OMX_COMPONENTTYPE *openmaxStandComp, OMX_STRING cComponentName) {
 
   OMX_ERRORTYPE err = OMX_ErrorNone;  
-  omx_haacd_component_PrivateType* omx_haacd_component_Private;
+  omx_shaac_component_PrivateType* omx_shaac_component_Private;
   omx_base_audio_PortType *inPort,*outPort;
   OMX_U32 i;
 
   if (!openmaxStandComp->pComponentPrivate) {
     DEBUG(DEB_LEV_FUNCTION_NAME, "In %s, allocating component\n", __func__);
-    openmaxStandComp->pComponentPrivate = calloc(1, sizeof(omx_haacd_component_PrivateType));
+    openmaxStandComp->pComponentPrivate = calloc(1, sizeof(omx_shaac_component_PrivateType));
     if(openmaxStandComp->pComponentPrivate == NULL)  {
       return OMX_ErrorInsufficientResources;
     }
@@ -77,8 +77,8 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
     DEBUG(DEB_LEV_FUNCTION_NAME, "In %s, Error Component %x Already Allocated\n", __func__, (int)openmaxStandComp->pComponentPrivate);
   }
 
-  omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
-  omx_haacd_component_Private->ports = NULL;
+  omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_Private->ports = NULL;
 
   /** we could create our own port structures here
     * fixme maybe the base class could use a "port factory" function pointer?  
@@ -89,28 +89,28 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
   /** first we set the parameter common to both formats
     * parameters related to input port which does not depend upon input audio format
     */
-  omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nStartPortNumber = 0;
-  omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts = 2;
+  omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nStartPortNumber = 0;
+  omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts = 2;
 
   /** Allocate Ports and call port constructor. */  
-  if (omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts && !omx_haacd_component_Private->ports) {
-    omx_haacd_component_Private->ports = calloc(omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts, sizeof(omx_base_PortType *));
-    if (!omx_haacd_component_Private->ports) {
+  if (omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts && !omx_shaac_component_Private->ports) {
+    omx_shaac_component_Private->ports = calloc(omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts, sizeof(omx_base_PortType *));
+    if (!omx_shaac_component_Private->ports) {
       return OMX_ErrorInsufficientResources;
     }
-    for (i=0; i < omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
-      omx_haacd_component_Private->ports[i] = calloc(1, sizeof(omx_base_audio_PortType));
-      if (!omx_haacd_component_Private->ports[i]) {
+    for (i=0; i < omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
+      omx_shaac_component_Private->ports[i] = calloc(1, sizeof(omx_base_audio_PortType));
+      if (!omx_shaac_component_Private->ports[i]) {
         return OMX_ErrorInsufficientResources;
       }
     }
   }
 
-  base_audio_port_Constructor(openmaxStandComp, &omx_haacd_component_Private->ports[0], 0, OMX_TRUE);
-  base_audio_port_Constructor(openmaxStandComp, &omx_haacd_component_Private->ports[1], 1, OMX_FALSE);
+  base_audio_port_Constructor(openmaxStandComp, &omx_shaac_component_Private->ports[0], 0, OMX_TRUE);
+  base_audio_port_Constructor(openmaxStandComp, &omx_shaac_component_Private->ports[1], 1, OMX_FALSE);
 
   /* parameters related to input port */
-  inPort = (omx_base_audio_PortType *) omx_haacd_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
+  inPort = (omx_base_audio_PortType *) omx_shaac_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
 
   inPort->sPortParam.nBufferSize = DEFAULT_IN_BUFFER_SIZE;
   strcpy(inPort->sPortParam.format.audio.cMIMEType, "audio/mpeg");
@@ -118,18 +118,18 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
 
   inPort->sAudioParam.eEncoding = OMX_AUDIO_CodingAAC;
 
-  setHeader(&omx_haacd_component_Private->pAudioAac,sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
-  omx_haacd_component_Private->pAudioAac.nPortIndex = 0;
-  omx_haacd_component_Private->pAudioAac.nChannels = 2;                                                                                                                          
-  omx_haacd_component_Private->pAudioAac.nBitRate = 28000;
-  omx_haacd_component_Private->pAudioAac.nSampleRate = 44100;
-  omx_haacd_component_Private->pAudioAac.nAudioBandWidth = 0; //encoder decides the needed bandwidth
-  omx_haacd_component_Private->pAudioAac.eChannelMode = OMX_AUDIO_ChannelModeStereo;
-  omx_haacd_component_Private->pAudioAac.nFrameLength = 0; //encoder decides the framelength
+  setHeader(&omx_shaac_component_Private->pAudioAac,sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
+  omx_shaac_component_Private->pAudioAac.nPortIndex = 0;
+  omx_shaac_component_Private->pAudioAac.nChannels = 2;                                                                                                                          
+  omx_shaac_component_Private->pAudioAac.nBitRate = 28000;
+  omx_shaac_component_Private->pAudioAac.nSampleRate = 44100;
+  omx_shaac_component_Private->pAudioAac.nAudioBandWidth = 0; //encoder decides the needed bandwidth
+  omx_shaac_component_Private->pAudioAac.eChannelMode = OMX_AUDIO_ChannelModeStereo;
+  omx_shaac_component_Private->pAudioAac.nFrameLength = 0; //encoder decides the framelength
   
   /**  common parameters related to output port */
 
-  outPort = (omx_base_audio_PortType *) omx_haacd_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX];
+  outPort = (omx_base_audio_PortType *) omx_shaac_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX];
 
   outPort->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingPCM;
   outPort->sPortParam.nBufferSize = DEFAULT_OUT_BUFFER_SIZE;
@@ -139,24 +139,24 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
   /** settings of output port 
     * output is pcm audo format - so set the pcm mode settings
     */ 
-  setHeader(&omx_haacd_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
-  omx_haacd_component_Private->pAudioPcmMode.nPortIndex = 1;
-  omx_haacd_component_Private->pAudioPcmMode.nChannels = 2;
-  omx_haacd_component_Private->pAudioPcmMode.eNumData = OMX_NumericalDataSigned;
-  omx_haacd_component_Private->pAudioPcmMode.eEndian = OMX_EndianLittle;
-  omx_haacd_component_Private->pAudioPcmMode.bInterleaved = OMX_TRUE;
-  omx_haacd_component_Private->pAudioPcmMode.nBitPerSample = 16;
-  omx_haacd_component_Private->pAudioPcmMode.nSamplingRate = 44100;
-  omx_haacd_component_Private->pAudioPcmMode.ePCMMode = OMX_AUDIO_PCMModeLinear;
-  omx_haacd_component_Private->pAudioPcmMode.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
-  omx_haacd_component_Private->pAudioPcmMode.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
+  setHeader(&omx_shaac_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
+  omx_shaac_component_Private->pAudioPcmMode.nPortIndex = 1;
+  omx_shaac_component_Private->pAudioPcmMode.nChannels = 2;
+  omx_shaac_component_Private->pAudioPcmMode.eNumData = OMX_NumericalDataSigned;
+  omx_shaac_component_Private->pAudioPcmMode.eEndian = OMX_EndianLittle;
+  omx_shaac_component_Private->pAudioPcmMode.bInterleaved = OMX_TRUE;
+  omx_shaac_component_Private->pAudioPcmMode.nBitPerSample = 16;
+  omx_shaac_component_Private->pAudioPcmMode.nSamplingRate = 44100;
+  omx_shaac_component_Private->pAudioPcmMode.ePCMMode = OMX_AUDIO_PCMModeLinear;
+  omx_shaac_component_Private->pAudioPcmMode.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
+  omx_shaac_component_Private->pAudioPcmMode.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
 
   /** some more component private structure initialization */
-  omx_haacd_component_Private->BufferMgmtCallback = omx_haacd_component_BufferMgmtCallbackHAACD;  
-  omx_haacd_component_Private->messageHandler = omx_haacd_component_MessageHandler;
-  omx_haacd_component_Private->destructor = omx_haacd_component_Destructor;
-  openmaxStandComp->SetParameter = omx_haacd_component_SetParameter;
-  openmaxStandComp->GetParameter = omx_haacd_component_GetParameter;
+  omx_shaac_component_Private->BufferMgmtCallback = omx_shaac_component_BufferMgmtCallbackHAACD;  
+  omx_shaac_component_Private->messageHandler = omx_shaac_component_MessageHandler;
+  omx_shaac_component_Private->destructor = omx_shaac_component_Destructor;
+  openmaxStandComp->SetParameter = omx_shaac_component_SetParameter;
+  openmaxStandComp->GetParameter = omx_shaac_component_GetParameter;
 
   /** increase the counter of initialized components and check against the maximum limit */
   noHAACDDecInstance++;
@@ -165,20 +165,20 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
     * if audio coding type is set other than haacd then error returned
     */
   if(!strcmp(cComponentName, AUDIO_DEC_AAC_NAME)) {
-    omx_haacd_component_Private->audio_coding_type = OMX_AUDIO_CodingAAC;
+    omx_shaac_component_Private->audio_coding_type = OMX_AUDIO_CodingAAC;
   }  else if (!strcmp(cComponentName, AUDIO_DEC_BASE_NAME)) {
-    omx_haacd_component_Private->audio_coding_type = OMX_AUDIO_CodingUnused;
+    omx_shaac_component_Private->audio_coding_type = OMX_AUDIO_CodingUnused;
   }  else  {
     /** IL client specified an invalid component name */
     return OMX_ErrorInvalidComponentName;
   }
 
-  if(!omx_haacd_component_Private->avCodecSyncSem) {
-    omx_haacd_component_Private->avCodecSyncSem = calloc(1, sizeof(tsem_t));
-    if(omx_haacd_component_Private->avCodecSyncSem == NULL) {
+  if(!omx_shaac_component_Private->avCodecSyncSem) {
+    omx_shaac_component_Private->avCodecSyncSem = calloc(1, sizeof(tsem_t));
+    if(omx_shaac_component_Private->avCodecSyncSem == NULL) {
       return OMX_ErrorInsufficientResources;
     }
-    tsem_init(omx_haacd_component_Private->avCodecSyncSem, 0);
+    tsem_init(omx_shaac_component_Private->avCodecSyncSem, 0);
   }
   if(noHAACDDecInstance > MAX_COMPONENT_HAACD) {
     return OMX_ErrorInsufficientResources;
@@ -190,24 +190,24 @@ OMX_ERRORTYPE omx_haacd_component_Constructor( OMX_COMPONENTTYPE *openmaxStandCo
 
 /** The destructor
  */
-OMX_ERRORTYPE omx_haacd_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shaac_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_U32 i;
 
-  if(omx_haacd_component_Private->avCodecSyncSem) {
-    tsem_deinit(omx_haacd_component_Private->avCodecSyncSem);
-    free(omx_haacd_component_Private->avCodecSyncSem);
-    omx_haacd_component_Private->avCodecSyncSem = NULL;
+  if(omx_shaac_component_Private->avCodecSyncSem) {
+    tsem_deinit(omx_shaac_component_Private->avCodecSyncSem);
+    free(omx_shaac_component_Private->avCodecSyncSem);
+    omx_shaac_component_Private->avCodecSyncSem = NULL;
   }
 
   /* frees port/s */
-  if (omx_haacd_component_Private->ports) {
-    for (i=0; i < omx_haacd_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
-      if(omx_haacd_component_Private->ports[i])
-        omx_haacd_component_Private->ports[i]->PortDestructor(omx_haacd_component_Private->ports[i]);
+  if (omx_shaac_component_Private->ports) {
+    for (i=0; i < omx_shaac_component_Private->sPortTypesParam[OMX_PortDomainAudio].nPorts; i++) {
+      if(omx_shaac_component_Private->ports[i])
+        omx_shaac_component_Private->ports[i]->PortDestructor(omx_shaac_component_Private->ports[i]);
     }
-    free(omx_haacd_component_Private->ports);
-    omx_haacd_component_Private->ports=NULL;
+    free(omx_shaac_component_Private->ports);
+    omx_shaac_component_Private->ports=NULL;
   }
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "Destructor of haacd decoder component is called\n");
@@ -221,26 +221,26 @@ OMX_ERRORTYPE omx_haacd_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp
 
 /** sets some parameters of the private structure for decoding */
 
-void omx_haacd_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private;
+void omx_shaac_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shaac_component_PrivateType* omx_shaac_component_Private;
   omx_base_audio_PortType *pPort;
 
-  omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   
-  if(omx_haacd_component_Private->audio_coding_type == OMX_AUDIO_CodingAAC)  {
-    strcpy(omx_haacd_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.cMIMEType, "audio/aac");
-    omx_haacd_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingAAC;
+  if(omx_shaac_component_Private->audio_coding_type == OMX_AUDIO_CodingAAC)  {
+    strcpy(omx_shaac_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.cMIMEType, "audio/aac");
+    omx_shaac_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX]->sPortParam.format.audio.eEncoding = OMX_AUDIO_CodingAAC;
                                                                                                                              
-    setHeader(&omx_haacd_component_Private->pAudioAac,sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
-    omx_haacd_component_Private->pAudioAac.nPortIndex = 0;
-    omx_haacd_component_Private->pAudioAac.nChannels = 2;                                                                                                                          
-    omx_haacd_component_Private->pAudioAac.nBitRate = 28000;
-    omx_haacd_component_Private->pAudioAac.nSampleRate = 44100;
-    omx_haacd_component_Private->pAudioAac.nAudioBandWidth = 0; // encoder decides the needed bandwidth
-    omx_haacd_component_Private->pAudioAac.eChannelMode = OMX_AUDIO_ChannelModeStereo;
-    omx_haacd_component_Private->pAudioAac.nFrameLength = 0; // encoder decides the framelength
+    setHeader(&omx_shaac_component_Private->pAudioAac,sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
+    omx_shaac_component_Private->pAudioAac.nPortIndex = 0;
+    omx_shaac_component_Private->pAudioAac.nChannels = 2;                                                                                                                          
+    omx_shaac_component_Private->pAudioAac.nBitRate = 28000;
+    omx_shaac_component_Private->pAudioAac.nSampleRate = 44100;
+    omx_shaac_component_Private->pAudioAac.nAudioBandWidth = 0; // encoder decides the needed bandwidth
+    omx_shaac_component_Private->pAudioAac.eChannelMode = OMX_AUDIO_ChannelModeStereo;
+    omx_shaac_component_Private->pAudioAac.nFrameLength = 0; // encoder decides the framelength
     
-    pPort = (omx_base_audio_PortType *) omx_haacd_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
+    pPort = (omx_base_audio_PortType *) omx_shaac_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
     setHeader(&pPort->sAudioParam, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     pPort->sAudioParam.nPortIndex = 0;
     pPort->sAudioParam.nIndex = 0;
@@ -250,43 +250,43 @@ void omx_haacd_component_SetInternalParameters(OMX_COMPONENTTYPE *openmaxStandCo
 
 /** The Initialization function 
   */
-OMX_ERRORTYPE omx_haacd_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shaac_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err = OMX_ErrorNone;
   OMX_U32 nBufferSize;
 
   /** Temporary First Output buffer size*/
-  omx_haacd_component_Private->inputCurrBuffer = NULL;
-  omx_haacd_component_Private->inputCurrLength = 0;
-  nBufferSize = omx_haacd_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
-  omx_haacd_component_Private->internalOutputBuffer = malloc(nBufferSize);
-  memset(omx_haacd_component_Private->internalOutputBuffer, 0, nBufferSize);
-  omx_haacd_component_Private->isFirstBuffer = 2;
-  omx_haacd_component_Private->positionInOutBuf = 0;
-  omx_haacd_component_Private->isNewBuffer = 1;
+  omx_shaac_component_Private->inputCurrBuffer = NULL;
+  omx_shaac_component_Private->inputCurrLength = 0;
+  nBufferSize = omx_shaac_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
+  omx_shaac_component_Private->internalOutputBuffer = malloc(nBufferSize);
+  memset(omx_shaac_component_Private->internalOutputBuffer, 0, nBufferSize);
+  omx_shaac_component_Private->isFirstBuffer = 2;
+  omx_shaac_component_Private->positionInOutBuf = 0;
+  omx_shaac_component_Private->isNewBuffer = 1;
 
   return err;
 };
 
 /** The Deinitialization function 
   */
-OMX_ERRORTYPE omx_haacd_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shaac_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err = OMX_ErrorNone;
 
-  free(omx_haacd_component_Private->internalOutputBuffer);
-  omx_haacd_component_Private->internalOutputBuffer = NULL;
+  free(omx_shaac_component_Private->internalOutputBuffer);
+  omx_shaac_component_Private->internalOutputBuffer = NULL;
   
   /** reset the haacd decoder related parameters */
-  HAACD_Close (&omx_haacd_component_Private->aac);
+  HAACD_Close (&omx_shaac_component_Private->aac);
 
   return err;
 }
 
-static int omx_haacd_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
+static int omx_shaac_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
                                             unsigned char * data, int len)
 {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   int ret = 0;
 
   /** initializing haacd decoder parameters */
@@ -294,10 +294,10 @@ static int omx_haacd_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
 
   HAACD_AllocXYRAM (XRAM_P0, 80, YRAM_P0, 80);
 
-  HAACD_Open (&omx_haacd_component_Private->aac, data, len);
+  HAACD_Open (&omx_shaac_component_Private->aac, data, len);
 
-  HAACD_SetPCEArea(&omx_haacd_component_Private->aac, &omx_haacd_component_Private->pce);
-  ret = HAACD_SetDecOpt(&omx_haacd_component_Private->aac, omx_haacd_component_Private->decopt);
+  HAACD_SetPCEArea(&omx_shaac_component_Private->aac, &omx_shaac_component_Private->pce);
+  ret = HAACD_SetDecOpt(&omx_shaac_component_Private->aac, omx_shaac_component_Private->decopt);
 
   return 1;
 }
@@ -306,9 +306,9 @@ static int omx_haacd_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
   * @param inputbuffer contains the input ogg file content
   * @param outputbuffer is returned along with its output pcm file content that is produced as a result of this function execution
   */
-void omx_haacd_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
+void omx_shaac_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
 
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   OMX_U8* outputCurrBuffer;
   OMX_U32 outputLength;
   OMX_S32 result;  
@@ -327,10 +327,10 @@ void omx_haacd_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
  
   DEBUG(DEB_LEV_FULL_SEQ, "input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
   /** Fill up the current input buffer when a new buffer has arrived */
-  if(omx_haacd_component_Private->isNewBuffer) {
-    omx_haacd_component_Private->inputCurrBuffer = inputbuffer->pBuffer;
-    omx_haacd_component_Private->inputCurrLength = inputbuffer->nFilledLen;
-    omx_haacd_component_Private->positionInOutBuf = 0;
+  if(omx_shaac_component_Private->isNewBuffer) {
+    omx_shaac_component_Private->inputCurrBuffer = inputbuffer->pBuffer;
+    omx_shaac_component_Private->inputCurrLength = inputbuffer->nFilledLen;
+    omx_shaac_component_Private->positionInOutBuf = 0;
 
     DEBUG(DEB_LEV_SIMPLE_SEQ, "new -- input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
 
@@ -342,27 +342,27 @@ void omx_haacd_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
   outputbuffer->nFilledLen = 0;
   outputbuffer->nOffset = 0;
 
-  if (omx_haacd_component_Private->isFirstBuffer == 2) {
-    omx_haacd_component_DeferredInit (openmaxStandComp, inputbuffer->pBuffer, inputbuffer->nFilledLen);
-    omx_haacd_component_Private->isFirstBuffer = 1;
+  if (omx_shaac_component_Private->isFirstBuffer == 2) {
+    omx_shaac_component_DeferredInit (openmaxStandComp, inputbuffer->pBuffer, inputbuffer->nFilledLen);
+    omx_shaac_component_Private->isFirstBuffer = 1;
   }
 
   // Process data: Copy decoded and converted data into outputbuffer->pBuffer, and set outputbuffer->nFIlledLen
-  ret = HAACD_DecodeInit (&omx_haacd_component_Private->aac,
+  ret = HAACD_DecodeInit (&omx_shaac_component_Private->aac,
                           inputbuffer->pBuffer, inputbuffer->nFilledLen);
 
-  ret = HAACD_GetAdtsHeader (&omx_haacd_component_Private->aac,
-                             &omx_haacd_component_Private->aacadts);
+  ret = HAACD_GetAdtsHeader (&omx_shaac_component_Private->aac,
+                             &omx_shaac_component_Private->aacadts);
 
-  ret = HAACD_Decode (&omx_haacd_component_Private->aac,
+  ret = HAACD_Decode (&omx_shaac_component_Private->aac,
                       (short *)outputbuffer->pBuffer, &pcnt);
 
   outputbuffer->nFilledLen = pcnt*2;
 
-  if (omx_haacd_component_Private->isFirstBuffer == 1) {
-    omx_haacd_component_Private->pAudioAac.nChannels = omx_haacd_component_Private->aac.ChannelNumber;
-    omx_haacd_component_Private->pAudioAac.nSampleRate = a_sampl_rate[omx_haacd_component_Private->aac.sampling_frequency_index];
-    omx_haacd_component_Private->isFirstBuffer = 0;
+  if (omx_shaac_component_Private->isFirstBuffer == 1) {
+    omx_shaac_component_Private->pAudioAac.nChannels = omx_shaac_component_Private->aac.ChannelNumber;
+    omx_shaac_component_Private->pAudioAac.nSampleRate = a_sampl_rate[omx_shaac_component_Private->aac.sampling_frequency_index];
+    omx_shaac_component_Private->isFirstBuffer = 0;
   }
 
   // Finish
@@ -376,7 +376,7 @@ void omx_haacd_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
   * @param nParamIndex is the indextype of the parameter
   * @param ComponentParameterStructure is the input structure containing parameter setings
   */
-OMX_ERRORTYPE omx_haacd_component_SetParameter(
+OMX_ERRORTYPE omx_shaac_component_SetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_IN  OMX_PTR ComponentParameterStructure)  {
@@ -390,7 +390,7 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
 
   /** Check which structure we are being fed and make control its header */
   OMX_COMPONENTTYPE *openmaxStandComp = (OMX_COMPONENTTYPE *)hComponent;
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
   omx_base_audio_PortType *port;
   if (ComponentParameterStructure == NULL) {
     return OMX_ErrorBadParameter;
@@ -408,7 +408,7 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
       break;
     }
     if (portIndex <= 1) {
-      port = (omx_base_audio_PortType *) omx_haacd_component_Private->ports[portIndex];
+      port = (omx_base_audio_PortType *) omx_shaac_component_Private->ports[portIndex];
       memcpy(&port->sAudioParam,pAudioPortFormat, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     } else {
       return OMX_ErrorBadPortIndex;
@@ -424,7 +424,7 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
       DEBUG(DEB_LEV_ERR, "In %s Parameter Check Error=%x\n",__func__,err); 
       break;
     }
-    memcpy(&omx_haacd_component_Private->pAudioPcmMode, pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));          
+    memcpy(&omx_shaac_component_Private->pAudioPcmMode, pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));          
     break;
 
   case OMX_IndexParamAudioAac:
@@ -436,7 +436,7 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
       break;
     }
     if(pAudioAac->nPortIndex == 0)  {
-      memcpy(&omx_haacd_component_Private->pAudioAac, pAudioAac, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
+      memcpy(&omx_shaac_component_Private->pAudioAac, pAudioAac, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
     } else  {
       return OMX_ErrorBadPortIndex;
     }
@@ -445,11 +445,11 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
   case OMX_IndexParamStandardComponentRole:
     pComponentRole = (OMX_PARAM_COMPONENTROLETYPE*)ComponentParameterStructure;
     if (!strcmp( (char*) pComponentRole->cRole, AUDIO_DEC_AAC_ROLE)) {
-      omx_haacd_component_Private->audio_coding_type = OMX_AUDIO_CodingAAC;
+      omx_shaac_component_Private->audio_coding_type = OMX_AUDIO_CodingAAC;
     } else {
       return OMX_ErrorBadParameter;
     }
-    omx_haacd_component_SetInternalParameters(openmaxStandComp);
+    omx_shaac_component_SetInternalParameters(openmaxStandComp);
     break;
 
   default: /*Call the base component function*/
@@ -463,7 +463,7 @@ OMX_ERRORTYPE omx_haacd_component_SetParameter(
   * @param nParamIndex is the indextype of the parameter
   * @param ComponentParameterStructure is the structure to contain obtained parameter setings
   */
-OMX_ERRORTYPE omx_haacd_component_GetParameter(
+OMX_ERRORTYPE omx_shaac_component_GetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_INOUT OMX_PTR ComponentParameterStructure)  {
@@ -475,7 +475,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
   omx_base_audio_PortType *port;
   OMX_ERRORTYPE err = OMX_ErrorNone;
   OMX_COMPONENTTYPE *openmaxStandComp = (OMX_COMPONENTTYPE *)hComponent;
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = (omx_haacd_component_PrivateType*)openmaxStandComp->pComponentPrivate;
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = (omx_shaac_component_PrivateType*)openmaxStandComp->pComponentPrivate;
   if (ComponentParameterStructure == NULL) {
     return OMX_ErrorBadParameter;
   }
@@ -487,7 +487,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_PORT_PARAM_TYPE))) != OMX_ErrorNone) { 
       break;
     }
-    memcpy(ComponentParameterStructure, &omx_haacd_component_Private->sPortTypesParam, sizeof(OMX_PORT_PARAM_TYPE));
+    memcpy(ComponentParameterStructure, &omx_shaac_component_Private->sPortTypesParam, sizeof(OMX_PORT_PARAM_TYPE));
     break;    
 
   case OMX_IndexParamAudioPortFormat:
@@ -496,7 +496,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
       break;
     }
     if (pAudioPortFormat->nPortIndex <= 1) {
-      port = (omx_base_audio_PortType *)omx_haacd_component_Private->ports[pAudioPortFormat->nPortIndex];
+      port = (omx_base_audio_PortType *)omx_shaac_component_Private->ports[pAudioPortFormat->nPortIndex];
       memcpy(pAudioPortFormat, &port->sAudioParam, sizeof(OMX_AUDIO_PARAM_PORTFORMATTYPE));
     } else {
       return OMX_ErrorBadPortIndex;
@@ -511,7 +511,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
     if (pAudioPcmMode->nPortIndex > 1) {
       return OMX_ErrorBadPortIndex;
     }
-    memcpy(pAudioPcmMode, &omx_haacd_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
+    memcpy(pAudioPcmMode, &omx_shaac_component_Private->pAudioPcmMode, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
     break;
 
   case OMX_IndexParamAudioAac:
@@ -522,7 +522,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE))) != OMX_ErrorNone) { 
       break;
     }
-    memcpy(pAudioAac, &omx_haacd_component_Private->pAudioAac, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
+    memcpy(pAudioAac, &omx_shaac_component_Private->pAudioAac, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
     break;
 
   case OMX_IndexParamStandardComponentRole:
@@ -530,7 +530,7 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
     if ((err = checkHeader(ComponentParameterStructure, sizeof(OMX_PARAM_COMPONENTROLETYPE))) != OMX_ErrorNone) { 
       break;
     }
-    if (omx_haacd_component_Private->audio_coding_type == OMX_AUDIO_CodingAAC) {
+    if (omx_shaac_component_Private->audio_coding_type == OMX_AUDIO_CodingAAC) {
       strcpy( (char*) pComponentRole->cRole, AUDIO_DEC_AAC_ROLE);
     } else {
       strcpy( (char*) pComponentRole->cRole, "\0");;
@@ -546,21 +546,21 @@ OMX_ERRORTYPE omx_haacd_component_GetParameter(
 /** handles the message generated by the IL client 
   * @param message is the message type
   */
-OMX_ERRORTYPE omx_haacd_component_MessageHandler(OMX_COMPONENTTYPE* openmaxStandComp,internalRequestMessageType *message)  {
-  omx_haacd_component_PrivateType* omx_haacd_component_Private = (omx_haacd_component_PrivateType*)openmaxStandComp->pComponentPrivate;
+OMX_ERRORTYPE omx_shaac_component_MessageHandler(OMX_COMPONENTTYPE* openmaxStandComp,internalRequestMessageType *message)  {
+  omx_shaac_component_PrivateType* omx_shaac_component_Private = (omx_shaac_component_PrivateType*)openmaxStandComp->pComponentPrivate;
   OMX_ERRORTYPE err;
 
   DEBUG(DEB_LEV_SIMPLE_SEQ, "In %s\n", __func__);
 
   if (message->messageType == OMX_CommandStateSet){
-    if ((message->messageParam == OMX_StateIdle) && (omx_haacd_component_Private->state == OMX_StateLoaded)) {
-      err = omx_haacd_component_Init(openmaxStandComp);
+    if ((message->messageParam == OMX_StateIdle) && (omx_shaac_component_Private->state == OMX_StateLoaded)) {
+      err = omx_shaac_component_Init(openmaxStandComp);
       if(err!=OMX_ErrorNone) { 
         DEBUG(DEB_LEV_ERR, "In %s haacd Decoder Init Failed=%x\n",__func__,err); 
         return err;
       }
-    } else if ((message->messageParam == OMX_StateLoaded) && (omx_haacd_component_Private->state == OMX_StateIdle)) {
-      err = omx_haacd_component_Deinit(openmaxStandComp);
+    } else if ((message->messageParam == OMX_StateLoaded) && (omx_shaac_component_Private->state == OMX_StateIdle)) {
+      err = omx_shaac_component_Deinit(openmaxStandComp);
       if(err!=OMX_ErrorNone) { 
         DEBUG(DEB_LEV_ERR, "In %s HAACD Decoder Deinit Failed=%x\n",__func__,err); 
         return err;

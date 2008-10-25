@@ -1,2 +1,2 @@
 
-SUBDIRS = haacd hmp3d rsovpu4 tools
+SUBDIRS = aac mp3 rsovpu4 tools

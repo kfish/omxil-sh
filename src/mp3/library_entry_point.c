@@ -33,7 +33,7 @@
 
 #include <st_static_component_loader.h>
 
-#include "omx_hmp3d_component.h"
+#include "omx_shmp3_component.h"
 
 /** The library entry point. It must have the same name for each
  * library of the components loaded by the ST static component loader.
@@ -65,9 +65,9 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
   if (stComponents[0]->name == NULL) {
     return OMX_ErrorInsufficientResources;
   }
-  strcpy(stComponents[0]->name, "OMX.st.audio_decoder.mp3.hmp3d");
+  strcpy(stComponents[0]->name, "OMX.st.audio_decoder.mp3.shdsp");
   stComponents[0]->name_specific_length = 1; 
-  stComponents[0]->constructor = omx_hmp3d_component_Constructor;
+  stComponents[0]->constructor = omx_shmp3_component_Constructor;
 
   stComponents[0]->name_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));
   stComponents[0]->role_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));
@@ -83,7 +83,7 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
     }
   }
 
-  strcpy(stComponents[0]->name_specific[0], "OMX.st.audio_decoder.mp3.hmp3d");
+  strcpy(stComponents[0]->name_specific[0], "OMX.st.audio_decoder.mp3.shdsp");
   strcpy(stComponents[0]->role_specific[0], "audio_decoder.mp3");
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "Out of %s \n",__func__);
