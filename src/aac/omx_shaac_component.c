@@ -52,8 +52,12 @@ static void dsp_on(void)
 }
 
 
-#define MAX_COMPONENT_HAACD 4
-/** Maximum Number of HAACD component instances */
+/**
+ * Maximum Number of HAACD component instances. As libSACP1 does not provide any
+ * callback info arguments for HAACD_GetData(), we cannot differentiate between
+ * different component instances. Hence we are limited to only 1 HAACD component.
+ */
+#define MAX_COMPONENT_HAACD 1
 static OMX_U32 noHAACDDecInstance = 0;
 
 /** The Constructor
@@ -256,14 +260,10 @@ OMX_ERRORTYPE omx_shaac_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
   OMX_U32 nBufferSize;
 
   /** Temporary First Output buffer size*/
-  omx_shaac_component_Private->inputCurrBuffer = NULL;
-  omx_shaac_component_Private->inputCurrLength = 0;
   nBufferSize = omx_shaac_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
   omx_shaac_component_Private->internalOutputBuffer = malloc(nBufferSize);
   memset(omx_shaac_component_Private->internalOutputBuffer, 0, nBufferSize);
-  omx_shaac_component_Private->isFirstBuffer = 2;
-  omx_shaac_component_Private->positionInOutBuf = 0;
-  omx_shaac_component_Private->isNewBuffer = 1;
+  omx_shaac_component_Private->initState = 0;
 
   return err;
 };
@@ -277,9 +277,6 @@ OMX_ERRORTYPE omx_shaac_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
   free(omx_shaac_component_Private->internalOutputBuffer);
   omx_shaac_component_Private->internalOutputBuffer = NULL;
   
-  /** reset the haacd decoder related parameters */
-  HAACD_Close (&omx_shaac_component_Private->aac);
-
   return err;
 }
 
@@ -302,6 +299,27 @@ static int omx_shaac_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
   return 1;
 }
 
+static unsigned char * input;
+static int remaining;
+
+/* A function of this name is required by libSACP1. It fills a buffer of
+ * input data and returns the number of bytes filled.
+ */
+int HAACD_GetData( unsigned char *wpt, int ndata )
+{
+  int copied=0;
+
+  if (remaining > 0) {
+    copied = remaining < ndata ? remaining : ndata ;
+    memcpy (wpt, input, copied);
+
+    input += copied;
+    remaining -= copied;
+  }
+
+  return copied;
+}
+
 /** central buffer management function 
   * @param inputbuffer contains the input ogg file content
   * @param outputbuffer is returned along with its output pcm file content that is produced as a result of this function execution
@@ -309,43 +327,23 @@ static int omx_shaac_component_DeferredInit(OMX_COMPONENTTYPE *openmaxStandComp,
 void omx_shaac_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
 
   omx_shaac_component_PrivateType* omx_shaac_component_Private = openmaxStandComp->pComponentPrivate;
-  OMX_U8* outputCurrBuffer;
-  OMX_U32 outputLength;
-  OMX_S32 result;  
-  float **pcm;
-  OMX_S32 samples;
-  OMX_S32 i, j;
-  OMX_S32 bout;
-  OMX_S32 clipflag=0;
-  int val;
-  float  *mono;
-  static OMX_S32 index=0;
-  int eos=0;
   char *haacd_buffer;
   int ret;
   int pcnt = 0;
  
   DEBUG(DEB_LEV_FULL_SEQ, "input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
-  /** Fill up the current input buffer when a new buffer has arrived */
-  if(omx_shaac_component_Private->isNewBuffer) {
-    omx_shaac_component_Private->inputCurrBuffer = inputbuffer->pBuffer;
-    omx_shaac_component_Private->inputCurrLength = inputbuffer->nFilledLen;
-    omx_shaac_component_Private->positionInOutBuf = 0;
 
-    DEBUG(DEB_LEV_SIMPLE_SEQ, "new -- input buf %x filled len : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
-
-    /** for each new input buffer --- feed into private decoder structure data */
-    DEBUG(DEB_LEV_FULL_SEQ,"***** bytes read to buffer (of first header): %d \n",(int)inputbuffer->nFilledLen);
-  }
-  outputCurrBuffer = outputbuffer->pBuffer;
-  outputLength = outputbuffer->nAllocLen;
   outputbuffer->nFilledLen = 0;
   outputbuffer->nOffset = 0;
 
-  if (omx_shaac_component_Private->isFirstBuffer == 2) {
+  if (omx_shaac_component_Private->initState == 0) {
     omx_shaac_component_DeferredInit (openmaxStandComp, inputbuffer->pBuffer, inputbuffer->nFilledLen);
-    omx_shaac_component_Private->isFirstBuffer = 1;
+    omx_shaac_component_Private->initState = 1;
   }
+
+  /* Set up input, remaining static variables used by HAACD_GetData() above */
+  input = inputbuffer->pBuffer;
+  remaining = inputbuffer->nFilledLen;
 
   // Process data: Copy decoded and converted data into outputbuffer->pBuffer, and set outputbuffer->nFIlledLen
   ret = HAACD_DecodeInit (&omx_shaac_component_Private->aac,
@@ -357,13 +355,20 @@ void omx_shaac_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
   ret = HAACD_Decode (&omx_shaac_component_Private->aac,
                       (short *)outputbuffer->pBuffer, &pcnt);
 
-  outputbuffer->nFilledLen = pcnt*2;
+  if (ret == HAACD_ERR_DATA_EMPTY) {
+    outputbuffer->nFilledLen = 0;
+  } else if (ret >= 0) {
+    outputbuffer->nFilledLen = pcnt*2;
+  }
 
-  if (omx_shaac_component_Private->isFirstBuffer == 1) {
+  if (omx_shaac_component_Private->initState == 1) {
     omx_shaac_component_Private->pAudioAac.nChannels = omx_shaac_component_Private->aac.ChannelNumber;
     omx_shaac_component_Private->pAudioAac.nSampleRate = a_sampl_rate[omx_shaac_component_Private->aac.sampling_frequency_index];
-    omx_shaac_component_Private->isFirstBuffer = 0;
+    omx_shaac_component_Private->initState = 2;
+    /* XXX: Send state change */
   }
+
+  inputbuffer->nFilledLen = 0;
 
   // Finish
   DEBUG(DEB_LEV_FULL_SEQ, "One output buffer %x len=%d is full returning\n", (int)outputbuffer->pBuffer, (int)outputbuffer->nFilledLen);  
