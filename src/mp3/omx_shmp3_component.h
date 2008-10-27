@@ -59,18 +59,8 @@ DERIVEDCLASS(omx_shmp3_component_PrivateType, omx_base_filter_PrivateType)
   OMX_AUDIO_PARAM_PCMMODETYPE pAudioPcmMode;  \
   /** @param minBufferLength Field that stores the minimun allowed size for ffmpeg decoder */ \
   OMX_U16 minBufferLength; \
-  /** @param inputCurrBuffer Field that stores pointer of the current input buffer position */ \
-  OMX_U8* inputCurrBuffer;\
-  /** @param inputCurrLength Field that stores current input buffer length in bytes */ \
-  OMX_U32 inputCurrLength;\
   /** @param internalOutputBuffer Field used for first internal output buffer */ \
   OMX_U8* internalOutputBuffer;\
-  /** @param isFirstBuffer Field that the buffer is the first buffer */ \
-  OMX_S32 isFirstBuffer;\
-  /** @param positionInOutBuf Field that used to calculate starting address of the next output frame to be written */ \
-  OMX_S32 positionInOutBuf; \
-  /** @param isNewBuffer Field that indicate a new buffer has arrived*/ \
-  OMX_S32 isNewBuffer;  \
   /** @param audio_coding_type Field that indicate the supported audio format of audio decoder */ \
   OMX_U32 audio_coding_type;
 ENDCLASS(omx_shmp3_component_PrivateType)
@@ -82,7 +72,7 @@ OMX_ERRORTYPE omx_shmp3_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
 OMX_ERRORTYPE omx_shmp3_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
 OMX_ERRORTYPE omx_shmp3_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
   
-void omx_shmp3_component_BufferMgmtCallbackHMP3D(
+void omx_shmp3_component_BufferMgmtCallback(
   OMX_COMPONENTTYPE *openmaxStandComp,
   OMX_BUFFERHEADERTYPE* inputbuffer,
   OMX_BUFFERHEADERTYPE* outputbuffer);
