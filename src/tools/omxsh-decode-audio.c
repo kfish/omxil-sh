@@ -34,11 +34,9 @@
 #include "omxsh-decode-audio.h"
 
 #define MP3_TYPE_SEL    1
-#define VORBIS_TYPE_SEL 2
 #define AAC_TYPE_SEL    3 
-#define G726_TYPE_SEL   4 
 #define COMPONENT_NAME_BASE "OMX.st.audio_decoder"
-#define BASE_ROLE "audio_decoder.ogg"
+#define BASE_ROLE "audio_decoder.mp3"
 #define COMPONENT_NAME_BASE_LEN 20
 #define SINK_NAME "OMX.st.alsa.alsasink"
 #define FILE_READER "OMX.st.audio_filereader"
@@ -96,16 +94,13 @@ static void setHeader(OMX_PTR header, OMX_U32 size) {
 
 void display_help() {
   printf("\n");
-  printf("Usage: omxaudiodectest [-o outfile] [-stmdgh] filename\n");
+  printf("Usage: omxsh-decode-audio [-o outfile] [-tdgh] filename\n");
   printf("\n");
   printf("       -o outfile: If this option is specified, the decoded stream is written to outfile\n");
   printf("                   This option can't be used with '-t' \n");
-  printf("       -s single_ogg: Use the single role Ogg Vorbis decoder instead of the default one. Can't be used with -m or .mp3 file\n");
   printf("       -t: The audio decoder is tunneled with the ALSA sink\n");
-  printf("       -m: For MP3 decoding use the mad library. Can't be used with -s or .ogg file\n");
   printf("       -d: If no output is specified, and no playback is specified,\n");
   printf("           this flag activated the print of the stream directly on stdout\n");
-  printf("       -f: Use filereader with mad\n");
   printf("       -g: Gain of the audio sink[0...100]\n");
   printf("       -h: Displays this help\n");
   printf("\n");
@@ -263,10 +258,7 @@ int flagSetupTunnel;
 int flagPlaybackOn;
 int flagOutputReceived;
 int flagInputReceived;
-int flagIsMadRequested;
-int flagIsMadUsingFileReader;
 int flagDirect;
-int flagSingleOGGSelected;
 int flagUsingFFMpeg;
 int flagIsGain;
 
@@ -290,10 +282,7 @@ int main(int argc, char** argv) {
     flagPlaybackOn = 1;
     flagOutputReceived = 0;
     flagInputReceived = 0;
-    flagIsMadRequested = 0;
-    flagIsMadUsingFileReader = 0;
     flagDirect = 0;
-    flagSingleOGGSelected = 0;
     flagUsingFFMpeg = 1;
     flagIsGain = 0;
 
@@ -307,23 +296,12 @@ int main(int argc, char** argv) {
         case 'h':
           display_help();
           break;
-        case 's':
-          flagSingleOGGSelected = 1;
-          flagUsingFFMpeg = 0;
-          break;
         case 't':
           flagSetupTunnel = 1;
           break;
         case 'o':
           flagIsOutputExpected = 1;
           flagPlaybackOn = 0;
-          break;
-        case 'm':
-          flagIsMadRequested = 1;
-          flagUsingFFMpeg = 0;
-          break;
-        case 'f':
-          flagIsMadUsingFileReader = 1;
           break;
         case 'd':
           flagDirect = 1;
@@ -390,32 +368,9 @@ int main(int argc, char** argv) {
   if (*(input_file+index -1) == '3') {
     selectedType = MP3_TYPE_SEL;
     DEBUG(DEFAULT_MESSAGES, "MP3\n");
-    if(flagSingleOGGSelected) {
-      DEBUG(DEB_LEV_ERR, "ERROR:Wrong Format(OGG Single) Selected\n");
-      display_help();
-    }
-  } else if(*(input_file+index -1) == 'g') {
-    selectedType = VORBIS_TYPE_SEL;
-    DEBUG(DEFAULT_MESSAGES, "VORBIS\n");
-    if(flagIsMadRequested) {
-      DEBUG(DEB_LEV_ERR, "ERROR:Wrong Format(MAD) Selected\n");
-      display_help();
-    }
   } else if(*(input_file+index -1) == 'c') {   
     selectedType = AAC_TYPE_SEL;
     DEBUG(DEFAULT_MESSAGES, "AAC\n");
-    if(flagIsMadRequested || flagSingleOGGSelected) {
-      DEBUG(DEB_LEV_ERR, "ERROR:Wrong Format(MAD/VORBIS) Selected\n");
-      display_help();
-    }
-  } else if(*(input_file+index -1) == '6') {   
-    selectedType = G726_TYPE_SEL;
-    DEBUG(DEFAULT_MESSAGES, "G726\n");
-    if(flagIsMadRequested || flagSingleOGGSelected) {
-      DEBUG(DEB_LEV_ERR, "ERROR:Wrong Format(MAD/VORBIS) Selected\n");
-      display_help();
-    }
-    flagUsingFFMpeg = 0; //Explicitly not using filereader in case of G726
   } else {
     DEBUG(DEB_LEV_ERR, "The input audio format is not supported - exiting\n");
     exit(1);
@@ -430,7 +385,7 @@ int main(int argc, char** argv) {
     } 
   }
 
-  if(!flagUsingFFMpeg && !flagIsMadUsingFileReader) {
+  if(!flagUsingFFMpeg) {
     fd = fopen(input_file, "rb");
     if(fd == NULL) {
       DEBUG(DEB_LEV_ERR, "Error in opening input file %s\n", input_file);
@@ -460,6 +415,7 @@ int main(int argc, char** argv) {
     exit(1);
   } 
 
+#if 0
   DEBUG(DEFAULT_MESSAGES, "------------------------------------\n");
   test_OMX_ComponentNameEnum();
   DEBUG(DEFAULT_MESSAGES, "------------------------------------\n");
@@ -469,26 +425,17 @@ int main(int argc, char** argv) {
   DEBUG(DEFAULT_MESSAGES, "------------------------------------\n");
   test_OpenClose(COMPONENT_NAME_BASE);
   DEBUG(DEFAULT_MESSAGES, "------------------------------------\n");
+#endif
 
   full_component_name = (OMX_STRING) malloc(OMX_MAX_STRINGNAME_SIZE);
   strcpy(full_component_name, COMPONENT_NAME_BASE);
   if(selectedType == MP3_TYPE_SEL) {
-    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".mp3");
-    if (flagIsMadRequested) {
-      strcpy(full_component_name+COMPONENT_NAME_BASE_LEN+4, ".mad");
-    }
-  } else if (selectedType == VORBIS_TYPE_SEL) {
-    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".ogg");
-    if (flagSingleOGGSelected) {
-      strcpy(full_component_name+COMPONENT_NAME_BASE_LEN+4, ".single");
-    }
+    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".mp3.shdsp");
   } else if (selectedType == AAC_TYPE_SEL) {   
-    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".aac");
-  } else if (selectedType == G726_TYPE_SEL) {   
-    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".g726");
+    strcpy(full_component_name+COMPONENT_NAME_BASE_LEN, ".aac.shdsp");
   }
 
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     DEBUG(DEB_LEV_SIMPLE_SEQ, "Using File Reader\n");
     /** file reader component name -- gethandle*/
     err = OMX_GetHandle(&appPriv->filereaderhandle, FILE_READER, NULL /*appPriv */, &filereadercallbacks);
@@ -533,11 +480,11 @@ int main(int argc, char** argv) {
     }
   }
 
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     /** setting the input audio format in file reader */
     err = OMX_GetExtensionIndex(appPriv->filereaderhandle,"OMX.ST.index.param.filereader.inputfilename",&eIndexParamFilename);
     if(err != OMX_ErrorNone) {
-      DEBUG(DEB_LEV_ERR,"\n error in get extension index\n");
+      DEBUG(DEB_LEV_ERR,"\n error in get extension index during initialization\n");
       exit(1);
     } else {
       DEBUG(DEB_LEV_SIMPLE_SEQ,"FileName Param index : %x \n",eIndexParamFilename);
@@ -553,7 +500,7 @@ int main(int argc, char** argv) {
 
   if (flagSetupTunnel) {
     DEBUG(DEB_LEV_SIMPLE_SEQ, "Setting up Tunnel\n");
-    if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+    if(flagUsingFFMpeg) {
       err = OMX_SetupTunnel(appPriv->filereaderhandle, 0, appPriv->audiodechandle, 0);
       if(err != OMX_ErrorNone) {
         DEBUG(DEB_LEV_ERR, "Set up Tunnel Failed\n");
@@ -573,7 +520,7 @@ int main(int argc, char** argv) {
     DEBUG(DEB_LEV_SIMPLE_SEQ, "Set up Tunnel Completed\n");
   }
   
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     /** now set the filereader component to idle and executing state */
     OMX_SendCommand(appPriv->filereaderhandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
   }
@@ -587,7 +534,7 @@ int main(int argc, char** argv) {
       err = OMX_SendCommand(appPriv->volumehandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
       err = OMX_SendCommand(appPriv->audiosinkhandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
     }
-    if( !flagUsingFFMpeg && !flagIsMadUsingFileReader) {
+    if( !flagUsingFFMpeg) {
       err = OMX_AllocateBuffer(appPriv->audiodechandle, &inBufferAudioDec1, 0, NULL, buffer_in_size);
       if(err != OMX_ErrorNone) {
         DEBUG(DEB_LEV_ERR, "Unable to allocate buffer\n");
@@ -601,7 +548,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (!flagSetupTunnel && ( flagUsingFFMpeg || flagIsMadUsingFileReader)) {
+  if (!flagSetupTunnel && ( flagUsingFFMpeg)) {
     outBufferFileRead1 = outBufferFileRead2 = NULL;
     /** allocation of file reader component's output buffers
     * these two will be used as input buffers of the audio decoder component 
@@ -617,7 +564,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
   }
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     /*Wait for File reader state change to */
     tsem_down(appPriv->filereaderEventSem);
     DEBUG(DEFAULT_MESSAGES,"File reader idle state \n");
@@ -631,7 +578,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     err = OMX_SendCommand(appPriv->filereaderhandle, OMX_CommandStateSet, OMX_StateExecuting, NULL);
     if(err != OMX_ErrorNone) {
       DEBUG(DEB_LEV_ERR,"file reader state executing failed\n");
@@ -654,7 +601,7 @@ int main(int argc, char** argv) {
     /** the output buffers of file reader component will be used 
     *  in the audio decoder component as input buffers 
     */ 
-    if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+    if(flagUsingFFMpeg) {
       err = OMX_UseBuffer(appPriv->audiodechandle, &inBufferAudioDec1, 0, NULL, buffer_out_size, outBufferFileRead1->pBuffer);
       if(err != OMX_ErrorNone) {
         DEBUG(DEB_LEV_ERR, "Unable to use the file read comp allocate buffer\n");
@@ -770,7 +717,7 @@ int main(int argc, char** argv) {
   }
   
   DEBUG(DEB_LEV_SIMPLE_SEQ,"All Component state changed to Executing\n");
-  if (!flagSetupTunnel && (flagUsingFFMpeg || flagIsMadUsingFileReader)) {
+  if (!flagSetupTunnel && (flagUsingFFMpeg)) {
     err = OMX_FillThisBuffer(appPriv->filereaderhandle, outBufferFileRead1);
     if(err != OMX_ErrorNone) {
       DEBUG(DEB_LEV_ERR, "In %s Error %08x Calling FillThisBuffer File Reader\n", __func__,err);
@@ -798,7 +745,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if(!flagUsingFFMpeg && !flagIsMadUsingFileReader) {
+  if(!flagUsingFFMpeg) {
     data_read = fread(inBufferAudioDec1->pBuffer, 1, buffer_in_size, fd);
     inBufferAudioDec1->nFilledLen = data_read;
     inBufferAudioDec1->nOffset = 0;
@@ -834,7 +781,7 @@ int main(int argc, char** argv) {
   DEBUG(DEFAULT_MESSAGES,"Received EOS \n");
   /*Send Idle Command to all components*/
   DEBUG(DEFAULT_MESSAGES, "The execution of the decoding process is terminated\n");
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     err = OMX_SendCommand(appPriv->filereaderhandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
   }
   err = OMX_SendCommand(appPriv->audiodechandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
@@ -842,7 +789,7 @@ int main(int argc, char** argv) {
     err = OMX_SendCommand(appPriv->volumehandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
     err = OMX_SendCommand(appPriv->audiosinkhandle, OMX_CommandStateSet, OMX_StateIdle, NULL);
   }  
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     tsem_down(appPriv->filereaderEventSem);
     DEBUG(DEFAULT_MESSAGES,"File reader idle state \n");
   }
@@ -854,7 +801,7 @@ int main(int argc, char** argv) {
 
   DEBUG(DEFAULT_MESSAGES, "All component Transitioned to Idle\n");
   /*Send Loaded Command to all components*/
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     err = OMX_SendCommand(appPriv->filereaderhandle, OMX_CommandStateSet, OMX_StateLoaded, NULL);
   }
   err = OMX_SendCommand(appPriv->audiodechandle, OMX_CommandStateSet, OMX_StateLoaded, NULL);
@@ -866,7 +813,7 @@ int main(int argc, char** argv) {
   DEBUG(DEFAULT_MESSAGES, "Audio dec to loaded\n");
 
   /*Free buffers is components are not tunnelled*/
-  if (!flagSetupTunnel || (!flagUsingFFMpeg && !flagIsMadUsingFileReader )) {
+  if (!flagSetupTunnel || !flagUsingFFMpeg) {
     err = OMX_FreeBuffer(appPriv->audiodechandle, 0, inBufferAudioDec1);
     err = OMX_FreeBuffer(appPriv->audiodechandle, 0, inBufferAudioDec2);
   }
@@ -876,7 +823,7 @@ int main(int argc, char** argv) {
     err = OMX_FreeBuffer(appPriv->audiodechandle, 1, outBufferAudioDec2);
   }
 
-  if (!flagSetupTunnel && (flagUsingFFMpeg || flagIsMadUsingFileReader)) {
+  if (!flagSetupTunnel && flagUsingFFMpeg) {
     err = OMX_FreeBuffer(appPriv->filereaderhandle, 0, outBufferFileRead1);
     err = OMX_FreeBuffer(appPriv->filereaderhandle, 0, outBufferFileRead2);
   }
@@ -891,7 +838,7 @@ int main(int argc, char** argv) {
     err = OMX_FreeBuffer(appPriv->audiosinkhandle, 0, inBufferSink2);
   }
 
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     tsem_down(appPriv->filereaderEventSem);
     DEBUG(DEFAULT_MESSAGES,"File reader loaded state \n");
   }
@@ -908,7 +855,7 @@ int main(int argc, char** argv) {
   OMX_FreeHandle(appPriv->audiodechandle);
   DEBUG(DEB_LEV_SIMPLE_SEQ, "audiodec dec freed\n");
   
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     OMX_FreeHandle(appPriv->filereaderhandle);
     DEBUG(DEB_LEV_SIMPLE_SEQ, "filereader freed\n");
   }
@@ -945,7 +892,7 @@ int main(int argc, char** argv) {
     fclose(outfile);
   }
 
-  if(!flagUsingFFMpeg && !flagIsMadUsingFileReader) {
+  if(!flagUsingFFMpeg) {
     if(fclose(fd) != 0) {
       DEBUG(DEB_LEV_ERR,"Error in closing input file stream\n");
       exit(1);
@@ -1013,27 +960,7 @@ OMX_ERRORTYPE filereaderEventHandler(
     }
   } else if(eEvent == OMX_EventPortSettingsChanged) {
     DEBUG(DEB_LEV_SIMPLE_SEQ,"File reader Port Setting Changed event\n");
-    if(flagUsingFFMpeg) {
-      err = OMX_GetExtensionIndex(appPriv->audiodechandle,"OMX.ST.index.config.audioextradata",&eIndexExtraData);
-      if(err != OMX_ErrorNone) {
-        DEBUG(DEB_LEV_ERR,"\n error in get extension index\n");
-        exit(1);
-      } else {
-        pExtraData = malloc(extradata_size);
-        err = OMX_GetConfig(appPriv->filereaderhandle, eIndexExtraData, pExtraData);
-        if(err != OMX_ErrorNone) {
-          DEBUG(DEB_LEV_ERR,"\n file reader Get Param Failed error =%08x index=%08x\n",err,eIndexExtraData);
-          exit(1);
-        }
-        DEBUG(DEB_LEV_SIMPLE_SEQ,"Setting ExtraData\n");
-        err = OMX_SetConfig(appPriv->audiodechandle, eIndexExtraData, pExtraData);
-        if(err != OMX_ErrorNone) {
-          DEBUG(DEB_LEV_ERR,"\n audio decoder Set Config Failed error=%08x\n",err);
-          exit(1);
-        }
-        free(pExtraData);
-      }
-    }
+
     /*Signal Port Setting Changed*/
     tsem_up(appPriv->filereaderEventSem);
   } else if(eEvent == OMX_EventPortFormatDetected) {
@@ -1096,6 +1023,7 @@ OMX_ERRORTYPE audiodecEventHandler(
   OMX_AUDIO_PARAM_PCMMODETYPE pcmParam;
   
   DEBUG(DEB_LEV_SIMPLE_SEQ, "Hi there, I am in the %s callback\n", __func__);
+
   if(eEvent == OMX_EventCmdComplete) {
     if (Data1 == OMX_CommandStateSet) {
       DEBUG(DEB_LEV_SIMPLE_SEQ/*SIMPLE_SEQ*/, "Audio Decoder State changed in ");
@@ -1252,7 +1180,7 @@ OMX_ERRORTYPE audiodecEmptyBufferDone(
   static int iBufferDropped=0;
   DEBUG(DEB_LEV_FULL_SEQ, "Hi there, I am in the %s callback.\n", __func__);
 
-  if(flagUsingFFMpeg || flagIsMadUsingFileReader) {
+  if(flagUsingFFMpeg) {
     if(pBuffer != NULL){
       if(!bEOS) {
         if(outBufferFileRead1->pBuffer == pBuffer->pBuffer) {
