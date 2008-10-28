@@ -252,6 +252,7 @@ OMX_ERRORTYPE omx_shmp3_component_Init(OMX_COMPONENTTYPE *openmaxStandComp)  {
   nBufferSize = omx_shmp3_component_Private->ports[OMX_BASE_FILTER_OUTPUTPORT_INDEX]->sPortParam.nBufferSize * 2;
   omx_shmp3_component_Private->internalOutputBuffer = malloc(nBufferSize);
   memset(omx_shmp3_component_Private->internalOutputBuffer, 0, nBufferSize);
+  omx_shmp3_component_Private->initState = 0;
   
   /** initializing hmp3d decoder parameters */
   DEBUG(DEB_LEV_FULL_SEQ, "Initializing hmp3d decoder parameters ...\n");
@@ -284,9 +285,10 @@ OMX_ERRORTYPE omx_shmp3_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp) {
 void omx_shmp3_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* inputbuffer, OMX_BUFFERHEADERTYPE* outputbuffer) {
 
   omx_shmp3_component_PrivateType* omx_shmp3_component_Private = openmaxStandComp->pComponentPrivate;
-  OMX_S32 i, j;
+  //OMX_S32 i, j;
   int ret;
   long len, outlen;
+  HMP3D_T_INFO info;
  
   DEBUG(DEB_LEV_FULL_SEQ, "input buf %x filled length : %d \n", (int)inputbuffer->pBuffer, (int)inputbuffer->nFilledLen);  
 
@@ -303,6 +305,36 @@ void omx_shmp3_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandComp,
                       (short *)outputbuffer->pBuffer, &outlen);
                       //(short *)outputbuffer->pBuffer, &outputbuffer->nFilledLen);
   DEBUG(DEB_LEV_FULL_SEQ,"Decoded outlen %ld, ret %d\n", outlen, ret);
+
+  if (omx_shmp3_component_Private->initState == 0) {
+    HMP3D_GetInfo (&omx_shmp3_component_Private->mp3, &info);
+
+    if ((info.fs > 0 && omx_shmp3_component_Private->pAudioMp3.nSampleRate != info.fs) ||
+        (info.channelMode == 1 && omx_shmp3_component_Private->pAudioMp3.nChannels == 2)) {
+
+      if (info.fs > 0)
+        omx_shmp3_component_Private->pAudioMp3.nSampleRate = info.fs;
+
+      if (info.channelMode == 1)
+        omx_shmp3_component_Private->pAudioMp3.nChannels = 1;
+      else
+        omx_shmp3_component_Private->pAudioMp3.nChannels = 2;
+
+      /*Send Port Settings changed call back*/
+      DEBUG(DEB_LEV_FULL_SEQ, "---->Sending Port Settings Change Event\n");
+
+      (*(omx_shmp3_component_Private->callbacks->EventHandler))
+        (openmaxStandComp,
+        omx_shmp3_component_Private->callbackData,
+        OMX_EventPortSettingsChanged, /* The command was completed */
+        0,
+        1, /* This is the output port index */
+        NULL);
+    }
+
+    omx_shmp3_component_Private->initState = 1;
+  }
+
   inputbuffer->nFilledLen = 0;
   outputbuffer->nFilledLen = outlen * 2;
 

@@ -61,6 +61,8 @@ DERIVEDCLASS(omx_shmp3_component_PrivateType, omx_base_filter_PrivateType)
   OMX_U16 minBufferLength; \
   /** @param internalOutputBuffer Field used for first internal output buffer */ \
   OMX_U8* internalOutputBuffer;\
+  /** @param initState Field initialization state for the first buffer */ \
+  OMX_S32 initState;\
   /** @param audio_coding_type Field that indicate the supported audio format of audio decoder */ \
   OMX_U32 audio_coding_type;
 ENDCLASS(omx_shmp3_component_PrivateType)
