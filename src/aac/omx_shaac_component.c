@@ -345,7 +345,7 @@ void omx_shaac_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
   input = inputbuffer->pBuffer;
   remaining = inputbuffer->nFilledLen;
 
-  // Process data: Copy decoded and converted data into outputbuffer->pBuffer, and set outputbuffer->nFIlledLen
+  /* Process data: Copy decoded and converted data into outputbuffer->pBuffer, and set outputbuffer->nFIlledLen */
   ret = HAACD_DecodeInit (&omx_shaac_component_Private->aac,
                           inputbuffer->pBuffer, inputbuffer->nFilledLen);
 
@@ -362,10 +362,26 @@ void omx_shaac_component_BufferMgmtCallbackHAACD(OMX_COMPONENTTYPE *openmaxStand
   }
 
   if (omx_shaac_component_Private->initState == 1) {
-    omx_shaac_component_Private->pAudioAac.nChannels = omx_shaac_component_Private->aac.ChannelNumber;
-    omx_shaac_component_Private->pAudioAac.nSampleRate = a_sampl_rate[omx_shaac_component_Private->aac.sampling_frequency_index];
+    if (omx_shaac_component_Private->pAudioAac.nChannels != omx_shaac_component_Private->aac.ChannelNumber ||
+    omx_shaac_component_Private->pAudioAac.nSampleRate != a_sampl_rate[omx_shaac_component_Private->aac.sampling_frequency_index]) {
+      omx_shaac_component_Private->pAudioAac.nChannels = omx_shaac_component_Private->aac.ChannelNumber;
+      omx_shaac_component_Private->pAudioAac.nSampleRate = a_sampl_rate[omx_shaac_component_Private->aac.sampling_frequency_index];
+
+      /*Send Port Settings changed call back*/
+      DEBUG(DEB_LEV_FULL_SEQ, "---->Sending Port Settings Change Event\n");
+
+      (*(omx_shaac_component_Private->callbacks->EventHandler))
+        (openmaxStandComp,
+        omx_shaac_component_Private->callbackData,
+        OMX_EventPortSettingsChanged, /* The command was completed */
+        0,
+        1, /* This is the output port index */
+        NULL);
+
+      /* Update initialization state (Done) */
+    }
+
     omx_shaac_component_Private->initState = 2;
-    /* XXX: Send state change */
   }
 
   inputbuffer->nFilledLen = 0;
