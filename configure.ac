@@ -109,26 +109,26 @@ AM_CONDITIONAL(HAVE_HMP3D, [test "x$HAVE_HMP3D" = "xyes"])
   
 # Check for shcodecs
 HAVE_SHCODECS="no"
-SHCODECS_SUPPORT="no"
+VPU_SUPPORT="no"
 
-ac_enable_shcodecs=yes
-AC_ARG_ENABLE(shcodecs,
-     [  --disable-shcodecs       disable building of SHCODECS support ],
-     [ ac_enable_shcodecs=no ], [ ac_enable_shcodecs=yes] )
+ac_enable_vpu=yes
+AC_ARG_ENABLE(vpu,
+     [  --disable-vpu           disable building of VPU support ],
+     [ ac_enable_vpu=no ], [ ac_enable_vpu=yes] )
 
-if test "x${ac_enable_shcodecs}" = xyes ; then
+if test "x${ac_enable_vpu}" = xyes ; then
   PKG_CHECK_MODULES([SHCODECS], [shcodecs], HAVE_SHCODECS="yes", HAVE_SHCODECS="no")
 
   if test "x$HAVE_SHCODECS" = "xyes" ; then
     AC_DEFINE(HAVE_SHCODECS, [1], [Define to 1 if you have SHCODECS])
     AC_SUBST(SHCODECS_LIBS)
-    SHCODECS_SUPPORT="yes (SHCODECS)"
+    VPU_SUPPORT="yes (SHCODECS)"
   else
     AC_DEFINE(HAVE_SHCODECS, [0], [Define to 1 if you have SHCODECS])
   fi
 else
   AC_DEFINE(HAVE_SHCODECS, [0], [Define to 1 if you have SHCODECS])
-  SHCODECS_SUPPORT="disabled"
+  VPU_SUPPORT="disabled"
 fi
 AM_CONDITIONAL(HAVE_SHCODECS, [test "x$HAVE_SHCODECS" = "xyes"])
 
@@ -148,7 +148,7 @@ AC_MSG_RESULT([
 
     AAC support: ................. $HAACD_SUPPORT
     MP3 support: ................. $HMP3D_SUPPORT
-    VPU support: ................. $SHCODECS_SUPPORT
+    VPU support: ................. $VPU_SUPPORT
 
 ------------------------------------------------------------------------
 ])

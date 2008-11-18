@@ -1,10 +1,12 @@
 /**
-  @file test/components/video/omxvideodectest.c
+  @file src/tools/omx-decode-video.c
   
   Test application that uses a OpenMAX component, a generic video decoder. 
   The application receives an video stream (.m4v or .264) decoded by a multiple format decoder component.
   The decoded output is seen by a yuv viewer.
   
+  based on test/components/video/omxvideodectest.c,
+
   Copyright (C) 2007-2008 STMicroelectronics
   Copyright (C) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 
@@ -265,11 +267,11 @@ int find_resolution(char* searchname) {
 /** help display */
 void display_help() {
   printf("\n");
-  printf("Usage: omxvideodectest -o outfile [-t] [-c] [-h] [-f input_fmt] [-x] [-s] input_filename\n");
+  printf("Usage: omxsh-decode-video -o outfile [-t] [-c] [-h] [-f input_fmt] [-x] [-s] input_filename\n");
   printf("\n");
   printf("       -o outfile: If this option is specified, the output is written to user specified outfile\n");
   printf("                   Else, the output is written in the same directory of input file\n");
-  printf("                     the file name looks like input_filename_app.yuv/rgb depending on input option\n");
+  printf("                   the file name looks like input_filename_app.yuv/rgb depending on input option\n");
   printf("                   If the color conv option (-c) is specified then outfile will be .rgb file\n");
   printf("                   Else outfile will be in .yuv format \n");
   printf("                   N.B : This option is not needed if you use the sink component\n");
@@ -663,9 +665,9 @@ int main(int argc, char** argv) {
   full_component_name = malloc(sizeof(char*) * OMX_MAX_STRINGNAME_SIZE);
   strcpy(full_component_name, COMPONENT_NAME_BASE);
   if(selectedType == MPEG4_TYPE_SEL) {
-    strcpy(full_component_name + COMPONENT_NAME_BASE_LEN, ".mpeg4");
+    strcpy(full_component_name + COMPONENT_NAME_BASE_LEN, ".mpeg4.shvpu");
   } else if (selectedType == AVC_TYPE_SEL) {
-    strcpy(full_component_name + COMPONENT_NAME_BASE_LEN, ".avc");
+    strcpy(full_component_name + COMPONENT_NAME_BASE_LEN, ".avc.shvpu");
   } 
 
   DEBUG(DEFAULT_MESSAGES, "The component selected for decoding is %s\n", full_component_name);

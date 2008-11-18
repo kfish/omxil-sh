@@ -65,7 +65,7 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
   if (stComponents[0]->name == NULL) {
     return OMX_ErrorInsufficientResources;
   }
-  strcpy(stComponents[0]->name, "OMX.st.video_decoder");
+  strcpy(stComponents[0]->name, "OMX.st.video_decoder.shvpu");
   stComponents[0]->name_specific_length = 2; 
   stComponents[0]->constructor = omx_shvpudec_component_Constructor;
 
@@ -83,8 +83,8 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
     }
   }
 
-  strcpy(stComponents[0]->name_specific[0], "OMX.st.video_decoder.mpeg4");
-  strcpy(stComponents[0]->name_specific[1], "OMX.st.video_decoder.avc");
+  strcpy(stComponents[0]->name_specific[0], "OMX.st.video_decoder.mpeg4.shvpu");
+  strcpy(stComponents[0]->name_specific[1], "OMX.st.video_decoder.avc.shvpu");
   strcpy(stComponents[0]->role_specific[0], "video_decoder.mpeg4");
   strcpy(stComponents[0]->role_specific[1], "video_decoder.avc");
 

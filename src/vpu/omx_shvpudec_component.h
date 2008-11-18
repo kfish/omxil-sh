@@ -62,8 +62,8 @@
 
 
 #define VIDEO_DEC_BASE_NAME "OMX.st.video_decoder"
-#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4"
-#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc"
+#define VIDEO_DEC_MPEG4_NAME "OMX.st.video_decoder.mpeg4.shvpu"
+#define VIDEO_DEC_H264_NAME "OMX.st.video_decoder.avc.shvpu"
 #define VIDEO_DEC_MPEG4_ROLE "video_decoder.mpeg4"
 #define VIDEO_DEC_H264_ROLE "video_decoder.avc"
 
