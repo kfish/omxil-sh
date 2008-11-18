@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(openmax-sh, 0.5.0, [conrad@metadecks.org])
+AC_INIT(openmax-sh, 0.6.0, [conrad@metadecks.org])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/rsovpu4/library_entry_point.c])
 AC_CONFIG_HEADER([config.h])
