@@ -28,7 +28,7 @@
   Author $Author$
 */
 
-#include "omxvideodectest.h"
+#include "omxsh-decode-video.h"
 
 /** defining global declarations */
 #define MPEG4_TYPE_SEL 1
