@@ -33,7 +33,7 @@
 
 #include <st_static_component_loader.h>
 
-#include "omx_rsovpu4dec_component.h"
+#include "omx_shvpudec_component.h"
 
 /** The library entry point. It must have the same name for each
  * library of the components loaded by the ST static component loader.
@@ -67,7 +67,7 @@ int omx_component_library_Setup(stLoaderComponentType **stComponents) {
   }
   strcpy(stComponents[0]->name, "OMX.st.video_decoder");
   stComponents[0]->name_specific_length = 2; 
-  stComponents[0]->constructor = omx_rsovpu4dec_component_Constructor;
+  stComponents[0]->constructor = omx_shvpudec_component_Constructor;
 
   stComponents[0]->name_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));
   stComponents[0]->role_specific = calloc(stComponents[0]->name_specific_length,sizeof(char *));

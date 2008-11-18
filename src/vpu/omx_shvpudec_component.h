@@ -1,5 +1,5 @@
 /**
-  @file src/components/ffmpeg/omx_rsovpu4dec_component.h
+  @file src/components/ffmpeg/omx_shvpudec_component.h
   
   This component implements an H.264 / MPEG-4 AVC video decoder. 
   The H.264 / MPEG-4 AVC Video decoder is based on the FFmpeg software library.
@@ -27,8 +27,8 @@
   Author $Author$
 */
 
-#ifndef _OMX_VIDEODEC_COMPONENT_H_
-#define _OMX_VIDEODEC_COMPONENT_H_
+#ifndef _OMX_SHVPUDEC_COMPONENT_H_
+#define _OMX_SHVPUDEC_COMPONENT_H_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -44,7 +44,7 @@
 #include <string.h>
 
 /* Specific include files */
-#include <rsovpu4/rsovpu4_decoder.h>
+#include <shcodecs/shcodecs_decoder.h>
 
 #if 0
 #if FFMPEG_LIBNAME_HEADERS
@@ -69,10 +69,10 @@
 
 /** Video Decoder component private structure.
   */
-DERIVEDCLASS(omx_rsovpu4dec_component_PrivateType, omx_base_filter_PrivateType)
-#define omx_rsovpu4dec_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
-  /** @param decoder RSOVPU4_Decoder handle */  \
-  RSOVPU4_Decoder * decoder;  \
+DERIVEDCLASS(omx_shvpudec_component_PrivateType, omx_base_filter_PrivateType)
+#define omx_shvpudec_component_PrivateType_FIELDS omx_base_filter_PrivateType_FIELDS \
+  /** @param decoder SHCODECS_Decoder handle */  \
+  SHCodecs_Decoder * decoder;  \
   /** @param semaphore for avcodec access syncrhonization */  \
   tsem_t* avCodecSyncSem; \
   /** @param pVideoMpeg4 Referece to OMX_VIDEO_PARAM_MPEG4TYPE structure*/  \
@@ -97,7 +97,7 @@ DERIVEDCLASS(omx_rsovpu4dec_component_PrivateType, omx_base_filter_PrivateType)
   OMX_U8* extradata; \
   /** @param extradata_size extradata size*/ \
   OMX_U32 extradata_size;
-ENDCLASS(omx_rsovpu4dec_component_PrivateType)
+ENDCLASS(omx_shvpudec_component_PrivateType)
 
 #if 0
   /** @param eOutFramePixFmt Field that indicate output frame pixel format */ \
@@ -105,40 +105,40 @@ ENDCLASS(omx_rsovpu4dec_component_PrivateType)
 #endif
 
 /* Component private entry points declaration */
-OMX_ERRORTYPE omx_rsovpu4dec_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
-OMX_ERRORTYPE omx_rsovpu4dec_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_rsovpu4dec_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_rsovpu4dec_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
-OMX_ERRORTYPE omx_rsovpu4dec_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
+OMX_ERRORTYPE omx_shvpudec_component_Constructor(OMX_COMPONENTTYPE *openmaxStandComp,OMX_STRING cComponentName);
+OMX_ERRORTYPE omx_shvpudec_component_Destructor(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shvpudec_component_Init(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shvpudec_component_Deinit(OMX_COMPONENTTYPE *openmaxStandComp);
+OMX_ERRORTYPE omx_shvpudec_component_MessageHandler(OMX_COMPONENTTYPE*,internalRequestMessageType*);
 
-void omx_rsovpu4dec_component_BufferMgmtCallback(
+void omx_shvpudec_component_BufferMgmtCallback(
   OMX_COMPONENTTYPE *openmaxStandComp,
   OMX_BUFFERHEADERTYPE* inputbuffer,
   OMX_BUFFERHEADERTYPE* outputbuffer);
 
-OMX_ERRORTYPE omx_rsovpu4dec_component_GetParameter(
+OMX_ERRORTYPE omx_shvpudec_component_GetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_INOUT OMX_PTR ComponentParameterStructure);
 
-OMX_ERRORTYPE omx_rsovpu4dec_component_SetParameter(
+OMX_ERRORTYPE omx_shvpudec_component_SetParameter(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_INDEXTYPE nParamIndex,
   OMX_IN  OMX_PTR ComponentParameterStructure);
 
-OMX_ERRORTYPE omx_rsovpu4dec_component_ComponentRoleEnum(
+OMX_ERRORTYPE omx_shvpudec_component_ComponentRoleEnum(
   OMX_IN OMX_HANDLETYPE hComponent,
   OMX_OUT OMX_U8 *cRole,
   OMX_IN OMX_U32 nIndex);
 
 void SetInternalVideoParameters(OMX_COMPONENTTYPE *openmaxStandComp);
 
-OMX_ERRORTYPE omx_rsovpu4dec_component_SetConfig(
+OMX_ERRORTYPE omx_shvpudec_component_SetConfig(
   OMX_HANDLETYPE hComponent,
   OMX_INDEXTYPE nIndex,
   OMX_PTR pComponentConfigStructure);
 
-OMX_ERRORTYPE omx_rsovpu4dec_component_GetExtensionIndex(
+OMX_ERRORTYPE omx_shvpudec_component_GetExtensionIndex(
   OMX_IN  OMX_HANDLETYPE hComponent,
   OMX_IN  OMX_STRING cParameterName,
   OMX_OUT OMX_INDEXTYPE* pIndexType);

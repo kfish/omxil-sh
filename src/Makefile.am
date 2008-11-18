@@ -1,2 +1,2 @@
 
-SUBDIRS = aac mp3 rsovpu4 tools
+SUBDIRS = aac mp3 vpu tools

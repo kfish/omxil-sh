@@ -4,7 +4,7 @@
 AC_PREREQ(2.61)
 AC_INIT(openmax-sh, 0.6.0, [conrad@metadecks.org])
 AM_INIT_AUTOMAKE
-AC_CONFIG_SRCDIR([src/rsovpu4/library_entry_point.c])
+AC_CONFIG_SRCDIR([src/vpu/library_entry_point.c])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
@@ -107,37 +107,37 @@ else
 fi
 AM_CONDITIONAL(HAVE_HMP3D, [test "x$HAVE_HMP3D" = "xyes"])
   
-# Check for rsovpu4
-HAVE_RSOVPU4="no"
-RSOVPU4_SUPPORT="no"
+# Check for shcodecs
+HAVE_SHCODECS="no"
+SHCODECS_SUPPORT="no"
 
-ac_enable_rsovpu4=yes
-AC_ARG_ENABLE(rsovpu4,
-     [  --disable-rsovpu4       disable building of RSOVPU4 support ],
-     [ ac_enable_rsovpu4=no ], [ ac_enable_rsovpu4=yes] )
+ac_enable_shcodecs=yes
+AC_ARG_ENABLE(shcodecs,
+     [  --disable-shcodecs       disable building of SHCODECS support ],
+     [ ac_enable_shcodecs=no ], [ ac_enable_shcodecs=yes] )
 
-if test "x${ac_enable_rsovpu4}" = xyes ; then
-  PKG_CHECK_MODULES([RSOVPU4], [rsovpu4], HAVE_RSOVPU4="yes", HAVE_RSOVPU4="no")
+if test "x${ac_enable_shcodecs}" = xyes ; then
+  PKG_CHECK_MODULES([SHCODECS], [shcodecs], HAVE_SHCODECS="yes", HAVE_SHCODECS="no")
 
-  if test "x$HAVE_RSOVPU4" = "xyes" ; then
-    AC_DEFINE(HAVE_RSOVPU4, [1], [Define to 1 if you have RSOVPU4])
-    AC_SUBST(RSOVPU4_LIBS)
-    RSOVPU4_SUPPORT="yes (RSOVPU4)"
+  if test "x$HAVE_SHCODECS" = "xyes" ; then
+    AC_DEFINE(HAVE_SHCODECS, [1], [Define to 1 if you have SHCODECS])
+    AC_SUBST(SHCODECS_LIBS)
+    SHCODECS_SUPPORT="yes (SHCODECS)"
   else
-    AC_DEFINE(HAVE_RSOVPU4, [0], [Define to 1 if you have RSOVPU4])
+    AC_DEFINE(HAVE_SHCODECS, [0], [Define to 1 if you have SHCODECS])
   fi
 else
-  AC_DEFINE(HAVE_RSOVPU4, [0], [Define to 1 if you have RSOVPU4])
-  RSOVPU4_SUPPORT="disabled"
+  AC_DEFINE(HAVE_SHCODECS, [0], [Define to 1 if you have SHCODECS])
+  SHCODECS_SUPPORT="disabled"
 fi
-AM_CONDITIONAL(HAVE_RSOVPU4, [test "x$HAVE_RSOVPU4" = "xyes"])
+AM_CONDITIONAL(HAVE_SHCODECS, [test "x$HAVE_SHCODECS" = "xyes"])
 
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/aac/Makefile
 src/mp3/Makefile
-src/rsovpu4/Makefile
+src/vpu/Makefile
 src/tools/Makefile
 ])
 AC_OUTPUT
@@ -148,7 +148,7 @@ AC_MSG_RESULT([
 
     AAC support: ................. $HAACD_SUPPORT
     MP3 support: ................. $HMP3D_SUPPORT
-    VPU support: ................. $RSOVPU4_SUPPORT
+    VPU support: ................. $SHCODECS_SUPPORT
 
 ------------------------------------------------------------------------
 ])
