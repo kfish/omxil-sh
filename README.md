@@ -1,3 +1,6 @@
+omxil-sh
+========
+
 omxil-sh: A collection of OpenMAX IL components for SH-Mobile,
 using the Bellagio OpenMAX IL project framework.
 
@@ -11,14 +14,14 @@ build environment is available, including autoconf, automake, pkg-config.
 
 To build:
 
-autoreconf -vif
-./configure
-make
-make install
+    autoreconf -vif
+    ./configure
+    make
+    make install
 
 Then register the resulting OpenMAX IL components on the SH-Mobile host:
 
-$ omxil-bellagio-register
+    $ omxil-bellagio-register
 
 Testing
 -------
@@ -28,27 +31,27 @@ when you do 'make install'.
 
 Playback to an ALSA sound device:
 
-$ omxsh-decode-audio testfile.mp3
+    $ omxsh-decode-audio testfile.mp3
 
-$ omxsh-decode-audio testfile.aac
+    $ omxsh-decode-audio testfile.aac
 
 Decode to a file:
 
-$ omxsh-decode-audio -o /tmp/testfile.raw testfile.mp3
+    $ omxsh-decode-audio -o /tmp/testfile.raw testfile.mp3
 
-$ omxsh-decode-audio -o /tmp/testfile.raw testfile.aac
+    $ omxsh-decode-audio -o /tmp/testfile.raw testfile.aac
 
 When decoding audio to a file, the output will be written in the following raw PCM format:
 
-Sample Size    : 16-bit (2 bytes)
-Sample Encoding: signed (2's complement)
-Channels       : 2
-Sample Rate    : 44100
+    Sample Size    : 16-bit (2 bytes)
+    Sample Encoding: signed (2's complement)
+    Channels       : 2
+    Sample Rate    : 44100
 
 It can be played back with a command such as the following (using 'play' on a host
 with sox installed):
 
-$  play -s -2 -c2 -r44100 testfile.raw
+    $  play -s -2 -c2 -r44100 testfile.raw
 
 License
 -------
