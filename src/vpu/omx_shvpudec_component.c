@@ -1,10 +1,10 @@
 /**
   @file omx_shvpudec_component.c
   
-  This component implements H.264 / MPEG-4 AVC video decoder. 
-  The H.264 / MPEG-4 AVC Video decoder is based on libshcodecs.
+  This component implements a decoder for H.264 and MPEG-4 AVC video,
+  using libshcodecs.
 
-  Copyright (C) 2008      Renesas Solutions
+  Copyright (C) 2009 Renesas Technology Corp.
 
   Adapted from the Bellagio libomxil ffmpeg videodec component,
 

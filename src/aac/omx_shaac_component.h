@@ -1,8 +1,12 @@
 /**
-  @file src/components/vorbis/omx_shaac_component.h
+  @file omx_shaac_component.h
 
-  This component implements a ogg-vorbis decoder. The vorbis decoder is based on libvorbis
-  software library.
+  This component implements a HAACD decoder. The HAACD decoder is based on the
+  libhaacd API.
+
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from Bellagio omx_vorbis_component.h
 
   Copyright (C) 2007  STMicroelectronics and Nokia
 

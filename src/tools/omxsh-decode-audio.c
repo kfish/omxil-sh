@@ -4,9 +4,11 @@
   Test application that uses three OpenMAX components, a file reader, an audio decoder 
   and an ALSA sink. The application receives an compressed audio stream on input port
   from a file, decodes it and sends it to the ALSA sink, or to a file or standard output.
-  The audio formats supported are those of openmax-sh
+  The audio formats supported are those of openmax-sh: AAC, MP3
 
-  based on libomxil/test/components/audio/omxaudiodectest.c,
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from libomxil/test/components/audio/omxaudiodectest.c,
 
   Copyright (C) 2007-2008 STMicroelectronics
   Copyright (C) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).

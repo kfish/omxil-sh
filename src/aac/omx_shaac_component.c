@@ -3,7 +3,9 @@
   This component implements a HAACD decoder. The HAACD decoder is based on the
   libhaacd API.
 
-  Based on src/components/vorbis/omx_vorbis_component.c
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from libomxil/src/components/vorbis/omx_vorbis_component.c
   Copyright (C) 2007  STMicroelectronics and Nokia
 
   This library is free software; you can redistribute it and/or modify it under

@@ -1,8 +1,12 @@
 /**
-  @file src/components/ffmpeg/omx_shvpudec_component.h
+  @file omx_shvpudec_component.h
   
-  This component implements an H.264 / MPEG-4 AVC video decoder. 
-  The H.264 / MPEG-4 AVC Video decoder is based on the FFmpeg software library.
+  This component implements a decoder for H.264 and MPEG-4 AVC video,
+  using libshcodecs.
+
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from the Bellagio libomxil ffmpeg videodec component,
 
   Copyright (C) 2007-2008 STMicroelectronics
   Copyright (C) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).

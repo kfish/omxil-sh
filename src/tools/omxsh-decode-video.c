@@ -2,10 +2,12 @@
   @file src/tools/omx-decode-video.c
   
   Test application that uses a OpenMAX component, a generic video decoder. 
-  The application receives an video stream (.m4v or .264) decoded by a multiple format decoder component.
-  The decoded output is seen by a yuv viewer.
+  The application receives an video stream (.m4v or .264) decoded by a multiple
+  format decoder component. The decoded output is seen by a yuv viewer.
   
-  based on test/components/video/omxvideodectest.c,
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from the Bellagio omxvideodectest.c,
 
   Copyright (C) 2007-2008 STMicroelectronics
   Copyright (C) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).

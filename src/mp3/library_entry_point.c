@@ -1,7 +1,12 @@
 /**
   
+  This component implements a HMP3D decoder. The HMP3D decoder is based on the
+  libhmp3d API.
+
+  Copyright (C) 2009 Renesas Technology Corp.
+
   The library entry point. It must have the same name for each
-  library fo the components loaded by th ST static component loader.
+  library of the components loaded by the ST static component loader.
   This function fills the version, the component name and if existing also the roles
   and the specific names for each role. This base function is only an explanation.
   For each library it must be implemented, and it must fill data of any component

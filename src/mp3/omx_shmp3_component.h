@@ -1,8 +1,12 @@
 /**
   @file src/components/vorbis/omx_shmp3_component.h
 
-  This component implements a ogg-vorbis decoder. The vorbis decoder is based on libvorbis
-  software library.
+  This component implements a HMP3D decoder. The HMP3D decoder is based on the
+  libhmp3d API.
+
+  Copyright (C) 2009 Renesas Technology Corp.
+
+  Adapted from libomxil/src/components/vorbis/omx_vorbis_component.h
 
   Copyright (C) 2007  STMicroelectronics and Nokia
 
