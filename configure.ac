@@ -1,5 +1,5 @@
 ################################################################################
-# openmax-sh: A collection of OpenMAX IL components for SH-Mobile              #
+# omxil-sh: A collection of OpenMAX IL components for SH-Mobile                #
 # Copyright (C) 2009 Renesas Technology Corp.                                  #
 #                                                                              #
 # This library is free software; you can redistribute it and/or                #
@@ -20,7 +20,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(openmax-sh, 0.6.0, [conrad@metadecks.org])
+AC_INIT(omxil-sh, 0.6.0, [conrad@metadecks.org])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/vpu/library_entry_point.c])
 AC_CONFIG_HEADER([config.h])
