@@ -223,13 +223,6 @@ OMX_ERRORTYPE omx_shvpudec_component_ffmpegLibInit(omx_shvpudec_component_Privat
   SHCodecs_Format format;
   omx_base_video_PortType *inPort;
 
-#if 0
-  avcodec_init();
-  av_register_all();
-
-  DEBUG(DEB_LEV_SIMPLE_SEQ, "FFmpeg library/codec initialized\n");
-#endif
-
   inPort = (omx_base_video_PortType *)omx_shvpudec_component_Private->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
 
   switch(omx_shvpudec_component_Private->video_coding_type) {
@@ -246,15 +239,6 @@ OMX_ERRORTYPE omx_shvpudec_component_ffmpegLibInit(omx_shvpudec_component_Privat
       return OMX_ErrorComponentNotFound;
   }
 
-#if 0
-  /** Find the  decoder corresponding to the video type specified by IL client*/
-  omx_shvpudec_component_Private->avCodec = avcodec_find_decoder(target_codecID);
-  if (omx_shvpudec_component_Private->avCodec == NULL) {
-    DEBUG(DEB_LEV_ERR, "Codec not found\n");
-    return OMX_ErrorInsufficientResources;
-  }
-#endif
-
   /** Initialize the VPU4 decoder */
   omx_shvpudec_component_Private->decoder =
     shcodecs_decoder_init (inPort->sPortParam.format.video.nFrameWidth,
@@ -267,23 +251,6 @@ OMX_ERRORTYPE omx_shvpudec_component_ffmpegLibInit(omx_shvpudec_component_Privat
 
   //omx_shvpudec_component_Private->avCodecContext = avcodec_alloc_context();
 
-#if 0
-  /** necessary flags for MPEG-4 or H.264 stream */
-   omx_shvpudec_component_Private->avFrame = avcodec_alloc_frame();
-  if(omx_shvpudec_component_Private->extradata_size >0) {
-    omx_shvpudec_component_Private->avCodecContext->extradata = omx_shvpudec_component_Private->extradata;
-    omx_shvpudec_component_Private->avCodecContext->extradata_size = (int)omx_shvpudec_component_Private->extradata_size;
-  } else {
-    omx_shvpudec_component_Private->avCodecContext->flags |= CODEC_FLAG_TRUNCATED;
-  }
-#endif
-
-#if 0
-  if (avcodec_open(omx_shvpudec_component_Private->avCodecContext, omx_shvpudec_component_Private->avCodec) < 0) {
-    DEBUG(DEB_LEV_ERR, "Could not open codec\n");
-    return OMX_ErrorInsufficientResources;
-  }
-#endif
   tsem_up(omx_shvpudec_component_Private->avCodecSyncSem);
 
   DEBUG(DEB_LEV_SIMPLE_SEQ, "done\n");
@@ -296,21 +263,6 @@ OMX_ERRORTYPE omx_shvpudec_component_ffmpegLibInit(omx_shvpudec_component_Privat
 void omx_shvpudec_component_ffmpegLibDeInit(omx_shvpudec_component_PrivateType* omx_shvpudec_component_Private) {
 
   shcodecs_decoder_close (omx_shvpudec_component_Private->decoder);
-
-#if 0
-  if (omx_shvpudec_component_Private->avCodecContext->priv_data) {
-    avcodec_close (omx_shvpudec_component_Private->avCodecContext);
-  }
-  if (omx_shvpudec_component_Private->extradata_size == 0 && omx_shvpudec_component_Private->avCodecContext->extradata) {
-    av_free (omx_shvpudec_component_Private->avCodecContext->extradata);
-    //omx_shvpudec_component_Private->avCodecContext->extradata = NULL;
-    //omx_shvpudec_component_Private->avCodecContext->extradata_size = 0;
-  }
-  av_free (omx_shvpudec_component_Private->avCodecContext);
-
-  av_free(omx_shvpudec_component_Private->avFrame);
-#endif
-
 }
 
 /** internal function to set codec related parameters in the private type structure 
@@ -462,25 +414,6 @@ vpu_decoded (SHCodecs_Decoder * decoder,
   pOutputBuffer->nFilledLen += c_size;
 #endif /* tmp */
 
-#if 0 /* copied from mplayer/libmpcodecs/vd_shcodecs.c */
-    mp_image_t *mpi = (mp_image_t *)user_data;
-    static unsigned char *c;
-    int i;
-
-    memcpy (mpi->planes[0], y_buf, y_size);
-
-#if 0
-    c = &mpi->planes[0][10000];
-    printf ("\t%x%x%x%x %x%x%x%x\n", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
-#endif
-
-    c = c_buf;
-    for (i = 0; i < c_size/2; i++) {
-      mpi->planes[1][i] = *c++;
-      mpi->planes[2][i] = *c++;
-    }
-#endif
-
     DEBUG(DEB_LEV_FULL_SEQ, "Out %s\n", __func__);
 
     return 0;
@@ -523,16 +456,6 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
       tsem_down(omx_shvpudec_component_Private->avCodecSyncSem);
       omx_shvpudec_component_Private->isFirstBuffer = 0;
     }
-
-#if 0
-    omx_shvpudec_component_Private->avCodecContext->frame_number++;
-
-    nLen = avcodec_decode_video(omx_shvpudec_component_Private->avCodecContext, 
-          omx_shvpudec_component_Private->avFrame, 
-          (int*)&internalOutputFilled,
-          omx_shvpudec_component_Private->inputCurrBuffer, 
-          omx_shvpudec_component_Private->inputCurrLength);
-#endif
 
     DEBUG(DEB_LEV_SIMPLE_SEQ, " Setting decode calback ...\n");
 
@@ -962,18 +885,6 @@ OMX_ERRORTYPE omx_shvpudec_component_SetConfig(
       pExtradata = (OMX_VENDOR_EXTRADATATYPE*)pComponentConfigStructure;
       if (pExtradata->nPortIndex <= 1) {
         /** copy the extradata in the codec context private structure */
-#if 0
-        omx_shvpudec_component_Private->extradata_size = (OMX_U32)pExtradata->nDataSize;
-        if(omx_shvpudec_component_Private->extradata_size > 0) {
-          if(omx_shvpudec_component_Private->extradata) {
-            free(omx_shvpudec_component_Private->extradata);
-          }
-          omx_shvpudec_component_Private->extradata = malloc((int)pExtradata->nDataSize*sizeof(char));
-          memcpy(omx_shvpudec_component_Private->extradata, (unsigned char *)pExtradata->pData,pExtradata->nDataSize);
-        } else {
-                  DEBUG(DEB_LEV_SIMPLE_SEQ,"extradata size is 0 !!!\n");
-        }
-#endif
       } else {
           return OMX_ErrorBadPortIndex;
       }
