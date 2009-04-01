@@ -253,6 +253,8 @@ OMX_ERRORTYPE omx_shvpudec_component_ffmpegLibInit(omx_shvpudec_component_Privat
 
   tsem_up(omx_shvpudec_component_Private->avCodecSyncSem);
 
+  shcodecs_decoder_set_frame_by_frame (omx_shvpudec_component_Private->decoder, 1);
+
   DEBUG(DEB_LEV_SIMPLE_SEQ, "done\n");
 
   return OMX_ErrorNone;
