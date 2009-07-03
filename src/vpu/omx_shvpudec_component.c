@@ -472,7 +472,7 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
                            omx_shvpudec_component_Private->inputCurrLength);
 #endif
 
-    DEBUG(DEB_LEV_SIMPLE_SEQ, " Returned from decode...\n");
+    DEBUG(DEB_LEV_SIMPLE_SEQ, " Returned from decode (returned %d) ...\n", ret);
 
     if (ret < 0) {
       DEBUG(DEB_LEV_ERR, "----> A general error or simply frame not decoded?\n");
@@ -883,15 +883,6 @@ OMX_ERRORTYPE omx_shvpudec_component_SetConfig(
   DEBUG(DEB_LEV_SIMPLE_SEQ, "   Getting configuration %i\n", nIndex);
   /* Check which structure we are being fed and fill its header */
   switch (nIndex) {
-    case OMX_IndexVendorVideoExtraData :
-      pExtradata = (OMX_VENDOR_EXTRADATATYPE*)pComponentConfigStructure;
-      if (pExtradata->nPortIndex <= 1) {
-        /** copy the extradata in the codec context private structure */
-      } else {
-          return OMX_ErrorBadPortIndex;
-      }
-      break;
-
     default: // delegate to superclass
       return omx_base_component_SetConfig(hComponent, nIndex, pComponentConfigStructure);
   }
@@ -905,11 +896,6 @@ OMX_ERRORTYPE omx_shvpudec_component_GetExtensionIndex(
 
   DEBUG(DEB_LEV_FUNCTION_NAME,"In  %s \n",__func__);
 
-  if(strcmp(cParameterName,"OMX.ST.index.config.videoextradata") == 0) {
-    *pIndexType = OMX_IndexVendorVideoExtraData;
-  } else {
-    return OMX_ErrorBadParameter;
-  }
   return OMX_ErrorNone;
 }
 
