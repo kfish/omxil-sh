@@ -21,7 +21,7 @@ To build:
 
 Then register the resulting OpenMAX IL components on the SH-Mobile host:
 
-    $ omxil-bellagio-register
+    $ omxregister-bellagio
 
 Testing
 -------
