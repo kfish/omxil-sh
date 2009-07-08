@@ -71,6 +71,8 @@
 #define VIDEO_DEC_MPEG4_ROLE "video_decoder.mpeg4"
 #define VIDEO_DEC_H264_ROLE "video_decoder.avc"
 
+#define INPUT_BUF_LEN (2 * 256 * 1024)
+
 /** Video Decoder component private structure.
   */
 DERIVEDCLASS(omx_shvpudec_component_PrivateType, omx_base_filter_PrivateType)
@@ -88,7 +90,7 @@ DERIVEDCLASS(omx_shvpudec_component_PrivateType, omx_base_filter_PrivateType)
   /** @param minBufferLength Field that stores the minimun allowed size for FFmpeg decoder */ \
   OMX_U16 minBufferLength; \
   /** @param inputCurrBuffer Field that stores pointer of the current input buffer position */ \
-  OMX_U8* inputCurrBuffer;\
+  OMX_U8 inputCurrBuffer[INPUT_BUF_LEN];\
   /** @param inputCurrLength Field that stores current input buffer length in bytes */ \
   OMX_U32 inputCurrLength;\
   /** @param isFirstBuffer Field that the buffer is the first buffer */ \
