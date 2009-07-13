@@ -53,6 +53,9 @@ static OMX_U32 noVideoDecInstance = 0;
 /** define the max input buffer size */   
 #define DEFAULT_VIDEO_OUTPUT_BUF_SIZE DEFAULT_WIDTH*DEFAULT_HEIGHT*3/2   // YUV 420P 
 
+#undef MIN
+#define MIN(x,y) ( (x > y)? (y) : (x) )
+
 /** The Constructor of the video decoder component
   * @param openmaxStandComp the component handle to be constructed
   * @param cComponentName is the name of the constructed component
@@ -365,7 +368,7 @@ OMX_ERRORTYPE omx_shvpudec_component_Init(OMX_COMPONENTTYPE *openmaxStandComp) {
   /** Temporary First Output buffer size */
   //omx_shvpudec_component_Private->inputCurrBuffer = NULL;
   omx_shvpudec_component_Private->inputCurrLength = 0;
-  omx_shvpudec_component_Private->isFirstBuffer = 1;
+  //omx_shvpudec_component_Private->isFirstBuffer = 1;
   omx_shvpudec_component_Private->isNewBuffer = 1;
 
   return eError;
@@ -408,8 +411,6 @@ static inline void UpdateFrameSize(OMX_COMPONENTTYPE *openmaxStandComp) {
   }
 }
 
-static int nSize=0;
-
 static int total_output=0;
 
 /* local output callback, should be static */
@@ -421,9 +422,15 @@ vpu_decoded (SHCodecs_Decoder * decoder,
 {
   OMX_BUFFERHEADERTYPE* pOutputBuffer = (OMX_BUFFERHEADERTYPE *)user_data;
   OMX_U8* outputCurrBuffer;
+  int output_frame_size = y_size + c_size;
 
-  //outputCurrBuffer = pOutputBuffer->pBuffer + pOutputBuffer->nFilledLen;
-  outputCurrBuffer = pOutputBuffer->pBuffer;
+  if (pOutputBuffer->nAllocLen <
+      pOutputBuffer->nFilledLen + output_frame_size) {
+    DEBUG(DEB_LEV_FULL_SEQ, "Would overflow output\n");
+    return -1;
+  }
+
+  outputCurrBuffer = pOutputBuffer->pBuffer + pOutputBuffer->nFilledLen;
 
   memcpy (outputCurrBuffer, y_buf, y_size);
   outputCurrBuffer += y_size;
@@ -434,13 +441,21 @@ vpu_decoded (SHCodecs_Decoder * decoder,
 
   total_output += y_size + c_size;
 
+  if (pOutputBuffer->nAllocLen <
+      pOutputBuffer->nFilledLen + output_frame_size) {
+    DEBUG(DEB_LEV_FULL_SEQ, "NEXT would overflow output\n");
+    return 1;
+  }
+
   return 0;
 }
 
 /** This function is used to process the input buffer and provide one output buffer
   */
-void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandComp, OMX_BUFFERHEADERTYPE* pInputBuffer, OMX_BUFFERHEADERTYPE* pOutputBuffer) {
-
+void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandComp,
+                                               OMX_BUFFERHEADERTYPE* pInputBuffer,
+                                               OMX_BUFFERHEADERTYPE* pOutputBuffer)
+{
   omx_shvpudec_component_PrivateType* omx_shvpudec_component_Private = openmaxStandComp->pComponentPrivate;
   //AVPicture pic;
 
@@ -449,25 +464,27 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
   int ret = 0;
   int nLen = 0;
   int internalOutputFilled=0;
-  //int nSize;
+  int nSize;
   struct SwsContext *imgConvertYuvCtx = NULL;
   static int total_input=0;
 
-  OMX_U32 input_len=0;
+  OMX_U32 input_len=0, input_used=0;
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "In %s\n", __func__);
 
   input_len = omx_shvpudec_component_Private->inputCurrLength;
 
+  input_used = MIN (pInputBuffer->nFilledLen, INPUT_BUF_LEN - input_len);
+
   /** Fill up the current input buffer when a new buffer has arrived */
   if(omx_shvpudec_component_Private->isNewBuffer) {
     memcpy (&omx_shvpudec_component_Private->inputCurrBuffer[input_len],
-            pInputBuffer->pBuffer, pInputBuffer->nFilledLen);
-    input_len += pInputBuffer->nFilledLen;
+            pInputBuffer->pBuffer, input_used);
+    input_len += input_used;
     omx_shvpudec_component_Private->inputCurrLength = input_len;
+    pInputBuffer->nFilledLen -= nLen;
     omx_shvpudec_component_Private->isNewBuffer = 0;
-    DEBUG(DEB_LEV_FULL_SEQ, "New Buffer FilledLen = %d\n", (int)pInputBuffer->nFilledLen);
-    total_input += pInputBuffer->nFilledLen;
+    total_input += input_used;
     DEBUG(DEB_LEV_FULL_SEQ, "Total input so far = %d\n", total_input);
   }
 
@@ -478,11 +495,13 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
   while (!nOutputFilled) {
     DEBUG(DEB_LEV_SIMPLE_SEQ, "while(!nOutputFilled) {\n");
 
+#if 0
     if (omx_shvpudec_component_Private->isFirstBuffer) {
     DEBUG(DEB_LEV_SIMPLE_SEQ, "  isFirstBuffer {\n");
       tsem_down(omx_shvpudec_component_Private->avCodecSyncSem);
       omx_shvpudec_component_Private->isFirstBuffer = 0;
     }
+#endif
 
     DEBUG(DEB_LEV_SIMPLE_SEQ, " Setting decode callback ...\n");
 
@@ -491,13 +510,6 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
 
     DEBUG(DEB_LEV_SIMPLE_SEQ, " Calling decode...\n");
 
-    fprintf (stderr, "Calling decode on decoder %x: buf %p, len %ld\n",
-                           omx_shvpudec_component_Private->decoder,
-                           omx_shvpudec_component_Private->inputCurrBuffer, 
-                           omx_shvpudec_component_Private->inputCurrLength);
-
-
-    nSize = 0;
     ret = shcodecs_decode (omx_shvpudec_component_Private->decoder,
                            omx_shvpudec_component_Private->inputCurrBuffer, 
                            omx_shvpudec_component_Private->inputCurrLength);
@@ -542,25 +554,23 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
 
     if (ret == 0) {
       DEBUG(DEB_LEV_SIMPLE_SEQ, "  ret == 0\n");
-      omx_shvpudec_component_Private->isNewBuffer = 1;
 #if 1
       if(pInputBuffer->nFilledLen == 0) {
         omx_shvpudec_component_Private->isNewBuffer = 1;
       }
 #endif
     } else if ( ret > 0) {
-      DEBUG(DEB_LEV_SIMPLE_SEQ, "  ret > 0\n");
+      DEBUG(DEB_LEV_SIMPLE_SEQ, "  ret > 0: %d\n", ret);
 #if 1
       memmove (omx_shvpudec_component_Private->inputCurrBuffer,
                &omx_shvpudec_component_Private->inputCurrBuffer[ret],
                input_len - ret);
       omx_shvpudec_component_Private->inputCurrLength -= ret;
-      pInputBuffer->nFilledLen = 0;
+      pInputBuffer->nFilledLen -= input_used;
 #else
       nLen = ret;
       omx_shvpudec_component_Private->inputCurrBuffer += nLen;
       omx_shvpudec_component_Private->inputCurrLength -= nLen;
-      pInputBuffer->nFilledLen -= nLen;
 #endif
 
       //Buffer is fully consumed. Request for new Input Buffer
@@ -625,8 +635,6 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
 
     nOutputFilled = 1;
   }
-
-  fprintf (stderr, "total_output = %d\n", total_output);
 
   DEBUG(DEB_LEV_FULL_SEQ, "One output buffer %x nLen=%d is full returning in video decoder\n", 
             (int)pOutputBuffer->pBuffer, (int)pOutputBuffer->nFilledLen);
