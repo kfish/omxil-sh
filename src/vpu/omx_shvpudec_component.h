@@ -71,7 +71,8 @@
 #define VIDEO_DEC_MPEG4_ROLE "video_decoder.mpeg4"
 #define VIDEO_DEC_H264_ROLE "video_decoder.avc"
 
-#define INPUT_BUF_LEN (2 * 256 * 1024)
+#define INPUT_BUF_LEN (4 * 256 * 1024)
+#define OUTPUT_BUF_LEN (12 * 256 * 1024)
 
 /** Video Decoder component private structure.
   */
@@ -99,6 +100,16 @@ DERIVEDCLASS(omx_shvpudec_component_PrivateType, omx_base_filter_PrivateType)
   OMX_S32 isNewBuffer;  \
   /** @param video_coding_type Field that indicate the supported video format of video decoder */ \
   OMX_U32 video_coding_type;   \
+  /** @param pointer to actual OMX output buffer */ \
+  OMX_BUFFERHEADERTYPE * pOutputBuffer; \
+  /** @param outputCurrLength Field that stures current output buffer length in bytes */ \
+  OMX_U32 outputCurrLength; \
+  /** @param internal buffer for caching output frames */ \
+  OMX_U8 outputCache[OUTPUT_BUF_LEN]; \
+  /** @param number of bytes of outputCache that have been filled */ \
+  OMX_U32 outputCacheFilled; \
+  /** @param number of bytes of outputCache that have been copied out */ \
+  OMX_U32 outputCacheCopied; \
   /** @param extradata pointer to extradata*/ \
   OMX_U8* extradata; \
   /** @param extradata_size extradata size*/ \
