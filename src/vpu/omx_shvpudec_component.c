@@ -423,12 +423,9 @@ vpu_decoded (SHCodecs_Decoder * decoder,
              unsigned char * c_buf, int c_size,
              void * user_data)
 {
-  //OMX_BUFFERHEADERTYPE* pOutputBuffer = (OMX_BUFFERHEADERTYPE *)user_data;
   omx_shvpudec_component_PrivateType* vpudec = (omx_shvpudec_component_PrivateType*) user_data;
   OMX_U8* outputCurrBuffer;
   int output_frame_size = y_size + c_size;
-
-  fprintf (stderr, "%s: IN\n", __func__);
 
   if (vpudec->pOutputBuffer->nFilledLen + output_frame_size <=
       vpudec->pOutputBuffer->nAllocLen) {
@@ -452,14 +449,6 @@ vpu_decoded (SHCodecs_Decoder * decoder,
 
   total_output += output_frame_size;
 
-#if 0
-  if (pOutputBuffer->nAllocLen <
-      pOutputBuffer->nFilledLen + output_frame_size) {
-    DEBUG(DEB_LEV_FULL_SEQ, "NEXT would overflow output\n");
-    return 1;
-  }
-#endif
-
   return 0;
 }
 
@@ -470,22 +459,13 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
                                                OMX_BUFFERHEADERTYPE* pOutputBuffer)
 {
   omx_shvpudec_component_PrivateType* vpudec = openmaxStandComp->pComponentPrivate;
-  //AVPicture pic;
-
-  OMX_S32 nOutputFilled = 0;
-  //OMX_U8* outputCurrBuffer;
   int ret = 0;
-  int nLen = 0;
-  int internalOutputFilled=0;
-  int nSize;
-  struct SwsContext *imgConvertYuvCtx = NULL;
-  static int total_input=0;
-
   OMX_U32 input_len=0, input_used=0;
 
   DEBUG(DEB_LEV_FUNCTION_NAME, "In %s\n", __func__);
 
 #if 0
+  /* For comparing input to output */
   memcpy (pOutputBuffer->pBuffer, pInputBuffer->pBuffer, pInputBuffer->nFilledLen);
   pOutputBuffer->nFilledLen = pInputBuffer->nFilledLen;
 
@@ -537,25 +517,13 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
     vpudec->inputCurrLength += input_len;
     pInputBuffer->nFilledLen -= input_len;
     vpudec->isNewBuffer = 0;
-    total_input += input_used;
-    DEBUG(DEB_LEV_FULL_SEQ, "Total input so far = %d\n", total_input);
   }
 
-#if 1
   if (vpudec->isFirstBuffer) {
   DEBUG(DEB_LEV_SIMPLE_SEQ, "  isFirstBuffer {\n");
     tsem_down(vpudec->avCodecSyncSem);
     vpudec->isFirstBuffer = 0;
   }
-#endif
-
-#if 0
-  if (vpudec->inputCurrLength < INPUT_BUF_LEN / 2) {
-    DEBUG(DEB_LEV_SIMPLE_SEQ, "Not enough input buffered\n");
-    vpudec->isNewBuffer = 1;
-    goto buffer_mgmt_done;
-  }
-#endif
 
   DEBUG(DEB_LEV_SIMPLE_SEQ, " Setting decode callback ...\n");
 
@@ -571,141 +539,14 @@ void omx_shvpudec_component_BufferMgmtCallback(OMX_COMPONENTTYPE *openmaxStandCo
 
   if (ret < 0) {
     DEBUG(DEB_LEV_ERR, "----> A general error or simply frame not decoded?\n");
-  }
-
-#if 0
-    {
-      omx_base_video_PortType *inPort = (omx_base_video_PortType *)vpudec->ports[OMX_BASE_FILTER_INPUTPORT_INDEX];
-      if((inPort->sPortParam.format.video.nFrameWidth != vpudec->avCodecContext->width) ||
-         (inPort->sPortParam.format.video.nFrameHeight != vpudec->avCodecContext->height)) {
-        DEBUG(DEB_LEV_SIMPLE_SEQ, "---->Sending Port Settings Change Event in video decoder\n");
-
-        switch(vpudec->video_coding_type) {
-          case OMX_VIDEO_CodingMPEG4 :
-          case OMX_VIDEO_CodingAVC :
-            inPort->sPortParam.format.video.nFrameWidth = vpudec->avCodecContext->width;
-            inPort->sPortParam.format.video.nFrameHeight = vpudec->avCodecContext->height;
-            break;
-          default :
-            DEBUG(DEB_LEV_ERR, "Video formats other than MPEG-4 AVC not supported\nCodec not found\n");
-            break;           
-        }
-
-        UpdateFrameSize (openmaxStandComp);
-
-        /** Send Port Settings changed call back */
-        (*(vpudec->callbacks->EventHandler))
-          (openmaxStandComp,
-           vpudec->callbackData,
-           OMX_EventPortSettingsChanged, // The command was completed 
-           nLen,  //to adjust the file pointer to resume the correct decode process
-           0, // This is the input port index 
-           NULL);
-      }
-    }
-#endif
-
-#if 0
-  if (ret == 0) {
-    DEBUG(DEB_LEV_SIMPLE_SEQ, "  ret == 0\n");
-#if 1
-    if(pInputBuffer->nFilledLen == 0) {
-      vpudec->isNewBuffer = 1;
-    }
-#endif
-  } else if ( ret > 0) {
-    DEBUG(DEB_LEV_SIMPLE_SEQ, "  ret > 0: %d\n", ret);
-#if 0
-    memmove (vpudec->inputCurrBuffer,
-             &vpudec->inputCurrBuffer[ret],
-             input_len - ret);
-    vpudec->inputCurrLength -= ret;
-    pInputBuffer->nFilledLen -= input_used;
-#else
-    nLen = ret;
-    vpudec->inputCurrBuffer += nLen;
-    vpudec->inputCurrLength -= nLen;
-    pInputBuffer->nFilledLen -= nLen;
-#endif
-
-    //Buffer is fully consumed. Request for new Input Buffer
-    if(pInputBuffer->nFilledLen == 0) {
-      vpudec->isNewBuffer = 1;
-    }
-      
-#if 0
-      nSize = avpicture_get_size (vpudec->eOutFramePixFmt,
-                                  vpudec->avCodecContext->width,
-                                  vpudec->avCodecContext->height);
-
-      if(pOutputBuffer->nAllocLen < nSize) {
-        DEBUG(DEB_LEV_ERR, "Ouch!!!! Output buffer Alloc Len %d less than Frame Size %d\n",(int)pOutputBuffer->nAllocLen,nSize);
-        return;
-      }
-#endif
-
-#if 0
-      avpicture_fill (&pic, (unsigned char*)(outputCurrBuffer),
-                      vpudec->eOutFramePixFmt, 
-                      vpudec->avCodecContext->width, 
-                      vpudec->avCodecContext->height);
-
-      if ( !imgConvertYuvCtx ) {
-        imgConvertYuvCtx = sws_getContext( vpudec->avCodecContext->width, 
-                                              vpudec->avCodecContext->height, 
-                                              vpudec->avCodecContext->pix_fmt,
-                                              vpudec->avCodecContext->width,
-                                              vpudec->avCodecContext->height,
-                                              vpudec->eOutFramePixFmt, SWS_FAST_BILINEAR, NULL, NULL, NULL );
-      }
-
-      sws_scale(imgConvertYuvCtx, vpudec->avFrame->data, 
-                vpudec->avFrame->linesize, 0, 
-                vpudec->avCodecContext->height, pic.data, pic.linesize );
-
-      if (imgConvertYuvCtx ) {
-        sws_freeContext(imgConvertYuvCtx);
-      }
-
-      DEBUG(DEB_LEV_FULL_SEQ, "nSize=%d,frame linesize=%d,height=%d,pic linesize=%d PixFmt=%d\n",nSize,
-        vpudec->avFrame->linesize[0], 
-        vpudec->avCodecContext->height, 
-        pic.linesize[0],vpudec->eOutFramePixFmt);
-#endif
-
-      //pOutputBuffer->nFilledLen += nSize;
-
-  } else {
-    DEBUG(DEB_LEV_SIMPLE_SEQ, " } else {\n");
-    /**  This condition becomes true when the input buffer has completely be consumed.
-      * In this case is immediately switched because there is no real buffer consumption 
-      */
-    pInputBuffer->nFilledLen = 0;
-    /** Few bytes may be left in the input buffer but can't generate one output frame. 
-      *  Request for new Input Buffer
-      */
-    vpudec->isNewBuffer = 1;
-    //pOutputBuffer->nFilledLen = 0;
-  }
-#else
-
-  if (ret > 0) {
-    nLen = ret;
-#if 0
-    vpudec->inputCurrBuffer += nLen;
-    vpudec->inputCurrLength -= nLen;
-    pInputBuffer->nFilledLen -= nLen;
-    vpudec->isNewBuffer = 1;
-#else
+  } else if (ret > 0) {
     vpudec->inputCurrLength -= ret;
     memmove (vpudec->inputCurrBuffer,
              &vpudec->inputCurrBuffer[ret],
              vpudec->inputCurrLength);
-#endif
   }
-  vpudec->isNewBuffer = 1;
 
-#endif
+  vpudec->isNewBuffer = 1;
 
 buffer_mgmt_done:
 
