@@ -48,6 +48,44 @@ _PKG_CONFIG([pluginsdir], [variable=pluginsdir], [libomxil-bellagio])
 BELLAGIO_PLUGINSDIR=${pkg_cv_pluginsdir}
 AC_SUBST([BELLAGIO_PLUGINSDIR])
 
+# Bellagio debug levels: <bellagio/omx_comp_debug_levels.h>
+AC_ARG_ENABLE(
+    [debug],
+    [AC_HELP_STRING(
+        [--enable-debug],
+        [whether to enable an x debug level])],
+    [with_debug_level=$enableval],
+    [with_debug_level=no])
+
+CFG_DEBUG_LEVEL=0
+# Define debug messages level
+if test "x$with_debug_level" = "xno"; then
+ CFG_DEBUG_LEVEL=0
+fi
+if test "x$with_debug_level" = "xyes"; then
+ CFG_DEBUG_LEVEL=255
+fi
+if test "x$with_debug_level" = "x1"; then
+ CFG_DEBUG_LEVEL=2
+fi
+if test "x$with_debug_level" = "x2"; then
+ CFG_DEBUG_LEVEL=4
+fi
+if test "x$with_debug_level" = "x3"; then
+ CFG_DEBUG_LEVEL=8
+fi
+if test "x$with_debug_level" = "x4"; then
+ CFG_DEBUG_LEVEL=16
+fi
+if test "x$with_debug_level" = "x5"; then
+ CFG_DEBUG_LEVEL=32
+fi
+if test "x$with_debug_level" = "x6"; then
+ CFG_DEBUG_LEVEL=255
+fi
+
+AC_SUBST(CFG_DEBUG_LEVEL)
+CFLAGS="${CFLAGS} -DCONFIG_DEBUG_LEVEL=$CFG_DEBUG_LEVEL"
 ## Checks for codec libraries
 
 # Check for HAACD
